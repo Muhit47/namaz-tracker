@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary & Log files
+out.txt
+*.log
+
+# Backup folder
+BKP/
+
+# SQLite WAL & SHM temporary files
+*.db-wal
+*.db-shm
+
+# IDE & Editor files
+.vscode/
+.idea/

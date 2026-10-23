@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#009688">
+    <meta name="description" content="নামায ট্র্যাকার - আপনার দৈনন্দین নামায ও কাযা ম্যানেজমেন্ট">
+    <title>নামায ট্র্যাকার • Namaz Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css?v=2.6">
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Header / Glass Navbar -->
+        <header class="glass-navbar" role="banner">
+            <div class="nav-left">
+                <div class="app-logo" aria-label="নামায ট্র্যাকার">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span class="app-title">নামায ট্র্যাকার</span>
+                    <span class="live-indicator" aria-live="polite"></span>
+                </div>
+            </div>
+            <div class="nav-center">
+                <button class="location-pill" id="change-city-btn" aria-label="শহর বদলান" title="শহর বদলাতে ক্লিক করুন">
+                    <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span id="city-indicator">📍 ঢাকা (Dhaka)</span>
+                    <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <div class="next-waqt-pill" id="next-waqt-pill" aria-live="polite">
+                    <svg class="clock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span id="next-prayer-banner">নামাজের সময় লোড হচ্ছে...</span>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="backup-action-group" style="display: flex; align-items: center; gap: 6px; margin-right: 8px;">
+                    <button type="button" id="export-backup-btn" class="nav-action-btn" title="ডেটা ব্যাকআপ ডাউনলোড করুন" aria-label="ব্যাকআপ ডাউনলোড">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span class="btn-text-responsive">ব্যাকআপ</span>
+                    </button>
+                    <button type="button" id="import-backup-btn" class="nav-action-btn" title="ব্যাকআপ ফাইল রিস্টোর করুন" aria-label="ব্যাকআপ রিস্টোর">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="btn-text-responsive">রিস্টোর</span>
+                    </button>
+                    <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;" />
+                </div>
+                <div class="date-nav-pill" id="date-nav-pill-wrapper">
+                    <button id="prev-day" class="nav-chevron-btn" aria-label="গত দিন" title="গত দিন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="date-trigger" id="date-trigger" title="ক্যালেন্ডার খুলতে ক্লিক করুন">
+                        <svg class="calendar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span id="date-text-display">১৪ অক্টোবর ২০২৬</span>
+                        <svg class="date-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                    <button id="next-day" class="nav-chevron-btn" aria-label="পরবর্তী দিন" title="পরবর্তী দিন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
+
+                    <!-- Custom Framer-style Glassmorphic Datepicker Popover -->
+                    <div id="custom-calendar-popover" class="custom-calendar-popover" hidden>
+                        <div class="cal-popover-header">
+                            <button type="button" id="cal-prev-month" class="cal-nav-btn" aria-label="আগের মাস" title="আগের মাস">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <div class="cal-popover-title">
+                                <span id="cal-popover-month-bn">অক্টোবর ২০২৬</span>
+                                <span id="cal-popover-month-en" class="cal-sub-title">October 2026</span>
+                            </div>
+                            <button type="button" id="cal-next-month" class="cal-nav-btn" aria-label="পরের মাস" title="পরের মাস">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                        <div class="cal-popover-weekdays">
+                            <span>শনি</span>
+                            <span>রবি</span>
+                            <span>সোম</span>
+                            <span>মঙ্গল</span>
+                            <span>বুধ</span>
+                            <span>বৃহ</span>
+                            <span class="jumuah-header" title="জুমু'আ বার">শুক্র</span>
+                        </div>
+                        <div id="cal-popover-days" class="cal-popover-days-grid">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                        <div class="cal-popover-footer">
+                            <button type="button" id="cal-today-btn" class="cal-footer-btn today-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px; margin-right: 3px;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                আজকের দিন
+                            </button>
+                            <button type="button" id="cal-close-btn" class="cal-footer-btn close-btn">বন্ধ করুন</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- Segmented Navigation Tabs -->
+        <nav class="segmented-tabs" role="tablist" aria-label="মূল বিভাগ">
+            <button id="tab-today" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-today" data-tab="today">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>আজকের নামায</span>
+            </button>
+            <button id="tab-qaza" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-qaza" data-tab="qaza">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M9 11l3 3L22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                <span>আমলনামা ও ট্র্যাকার</span>
+            </button>
+            <button id="tab-ramadan" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-ramadan" data-tab="ramadan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <span>সেহরি ও ইফতার</span>
+            </button>
+            <button id="tab-analytics" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-analytics" data-tab="analytics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span>ক্যালেন্ডার ও স্ট্রিক</span>
+            </button>
+            <button id="tab-guide" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-guide" data-tab="guide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+                <span>নামাজের নিয়ম</span>
+            </button>
+            <button class="tab-btn" id="tab-wudu" data-tab="wudu" role="tab" aria-selected="false" aria-controls="panel-wudu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <span>ওজু ও পবিত্রতা</span>
+            </button>
+            <button class="tab-btn" id="tab-quran" data-tab="quran" role="tab" aria-selected="false" aria-controls="panel-quran">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    <path d="M8 7h8"/>
+                    <path d="M8 11h6"/>
+                </svg>
+                <span>আল কুরআন</span>
+            </button>
+            <button class="tab-btn" id="tab-hadith" data-tab="hadith" role="tab" aria-selected="false" aria-controls="panel-hadith">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span>হাদীস শরীফ</span>
+            </button>
+        </nav>
+
+        <!-- Tab Panels -->
+        <main class="tab-panels" role="main">
+            <!-- Tab 1: Today's Bento Dashboard -->
+            <section id="panel-today" class="tab-panel active" role="tabpanel" aria-labelledby="tab-today">
+                <!-- Hero Bento Row -->
+                <div class="bento-row hero-row">
+                    <article class="bento-card hero-card overview-card" aria-labelledby="overview-title">
+                        <header class="card-header overview-header">
+                            <div class="overview-title-group">
+                                <h2 id="overview-title" class="card-title">আজকের ওভারভিউ</h2>
+                                <div class="overview-date-subtitle">
+                                    <span id="current-date-display" class="date-display"></span>
+                                </div>
+                            </div>
+                            <div class="streak-badge" id="streak-badge">
+                                <svg class="flame-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                                </svg>
+                                <span id="streak-count-text">০ দিন স্ট্রিক</span>
+                            </div>
+                        </header>
+                        <div class="progress-section">
+                            <div class="circular-progress" role="img" aria-label="নামাজ অগ্রগতি">
+                                <svg class="progress-ring" viewBox="0 0 120 120">
+                                    <circle class="progress-ring-bg" cx="60" cy="60" r="54"/>
+                                    <circle class="progress-ring-fill" id="progress-ring" cx="60" cy="60" r="54" stroke-dasharray="339.29" stroke-dashoffset="339.29"/>
+                                </svg>
+                                <div class="progress-center">
+                                    <span class="progress-percent" id="progress-percent">০%</span>
+                                    <span class="progress-label">সম্পন্ন</span>
+                                </div>
+                            </div>
+                            <div class="progress-meta">
+                                <div class="progress-stat-pill">
+                                    <span class="stat-pill-label">আজকের আদায়:</span>
+                                    <span id="progress-text" class="progress-count">০/৫ ওয়াক্ত</span>
+                                </div>
+                                <p class="progress-encouragement" id="progress-encouragement">দৈনিক ৫ ওয়াক্ত নামাজ সময়মতো আদায় করুন 🤲</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Prayer Bento Grid -->
+                <div class="bento-grid prayer-grid" id="prayer-grid" role="list" aria-label="আজকের ৫টি নামায">
+                    <!-- Cards generated by JS -->
+                </div>
+
+                <!-- Daily Hadith Reminder Card -->
+                <div class="bento-row daily-hadith-row" style="margin-top: 18px;">
+                    <article class="bento-card daily-hadith-card" id="daily-hadith-widget">
+                        <div class="hadith-widget-header">
+                            <div class="hadith-badge-group">
+                                <span class="hadith-tag-pill">✨ আজকের নির্বাচিত হাদীস</span>
+                                <span class="hadith-book-pill" id="widget-hadith-book">সহীহ বুখারী</span>
+                            </div>
+                            <button type="button" class="btn-text-link" id="widget-view-all-hadith-btn">হাদীস শরীফ পড়ুন →</button>
+                        </div>
+                        <p class="hadith-widget-ar" id="widget-hadith-ar">...</p>
+                        <p class="hadith-widget-bn" id="widget-hadith-bn">...</p>
+                        <div class="hadith-widget-footer">
+                            <span class="hadith-widget-ref" id="widget-hadith-ref">...</span>
+                            <button type="button" class="hadith-icon-action-btn" id="widget-hadith-copy-btn" title="হাদীস কপি করুন">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span class="copy-text-label">কপি করুন</span>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Tab 2: Amalnama & Tracker -->
+            <section id="panel-qaza" class="tab-panel" role="tabpanel" aria-labelledby="tab-qaza" hidden>
+                <!-- Month Navigation Bar -->
+                <div class="bento-row amal-nav-row">
+                    <div class="amal-nav">
+                        <button type="button" id="amal-prev-month" class="icon-btn" aria-label="আগের মাস">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <h2 id="amal-month-title" class="amal-month-title">অক্টোবর ২০২৬</h2>
+                        <button type="button" id="amal-next-month" class="icon-btn" aria-label="পরের মাস">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5 Monthly Overview Cards -->
+                <div class="bento-row amal-overview-row">
+                    <article class="bento-card stat-card amal-stat-total">
+                        <span class="stat-pill-label">মোট আদায়কৃত</span>
+                        <div class="stat-value" id="amal-stat-total">০</div>
+                        <span class="stat-sub" id="amal-stat-total-rate">০% আদায়ের হার</span>
+                    </article>
+                    <article class="bento-card stat-card amal-stat-jamaah">
+                        <span class="stat-pill-label">জামাতে আদায়</span>
+                        <div class="stat-value" id="amal-stat-jamaah">০</div>
+                        <span class="stat-sub">ওয়াক্ত</span>
+                    </article>
+                    <article class="bento-card stat-card amal-stat-ontime">
+                        <span class="stat-pill-label">ওয়াক্তমতো আদায়</span>
+                        <div class="stat-value" id="amal-stat-ontime">০</div>
+                        <span class="stat-sub">ওয়াক্ত</span>
+                    </article>
+                    <article class="bento-card stat-card amal-stat-qaza">
+                        <span class="stat-pill-label">কাযা আদায়</span>
+                        <div class="stat-value" id="amal-stat-qaza">০</div>
+                        <span class="stat-sub">ওয়াক্ত</span>
+                    </article>
+                    <article class="bento-card stat-card amal-stat-missed">
+                        <span class="stat-pill-label">বাদ পড়েছে (মিসড)</span>
+                        <div class="stat-value" id="amal-stat-missed">০</div>
+                        <span class="stat-sub">ওয়াক্ত</span>
+                    </article>
+                </div>
+
+                <!-- 5 Waqt Detailed Breakdown Grid -->
+                <div class="bento-grid amal-waqt-grid" id="amal-waqt-grid">
+                    <!-- Populated dynamically by JS (Fajr, Dhuhr, Asr, Maghrib, Isha) -->
+                </div>
+            </section>
+
+            <!-- Tab 3: Ramadan & Fasting Dashboard -->
+            <section id="panel-ramadan" class="tab-panel" role="tabpanel" aria-labelledby="tab-ramadan" hidden>
+                <div class="bento-row ramadan-row">
+                    <article class="bento-card ramadan-card" aria-labelledby="ramadan-title">
+                        <header class="ramadan-header">
+                            <div class="ramadan-title-group">
+                                <div class="ramadan-icon-badge">🌙</div>
+                                <div class="ramadan-title-texts">
+                                    <h3 id="ramadan-title" class="ramadan-title">মাহে রমজান ও রোজা</h3>
+                                    <span id="hijri-date-display" class="hijri-subtitle">হিজরি তারিখ লোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                            <div class="ramadan-countdown-pill" id="ramadan-countdown-pill">
+                                <span class="live-pulse-dot"></span>
+                                <span id="ramadan-countdown-text">ইফতারের বাকি: --:--:--</span>
+                            </div>
+                        </header>
+
+                        <div class="ramadan-grid-body">
+                            <!-- Sehri Box -->
+                            <div class="time-box sehri-box">
+                                <div class="time-box-icon">🌌</div>
+                                <div class="time-box-info">
+                                    <span class="time-box-label">সেহরি শেষ</span>
+                                    <span class="time-box-val" id="sehri-time-val">--:-- AM</span>
+                                </div>
+                            </div>
+
+                            <!-- Iftar Box -->
+                            <div class="time-box iftar-box">
+                                <div class="time-box-icon">🌅</div>
+                                <div class="time-box-info">
+                                    <span class="time-box-label">ইফতারের সময়</span>
+                                    <span class="time-box-val" id="iftar-time-val">--:-- PM</span>
+                                </div>
+                            </div>
+
+                            <!-- Fasting Tracker Button -->
+                            <button type="button" class="roza-toggle-btn" id="roza-toggle-btn">
+                                <span class="roza-checkbox" id="roza-checkbox">✓</span>
+                                <span id="roza-btn-text">আজকের রোজা রাখা হয়েছে</span>
+                            </button>
+
+                            <!-- Dua Action Button -->
+                            <button type="button" class="dua-open-btn" id="open-dua-btn" title="সেহরি ও ইফতারের দোয়া">
+                                <span>🤲 দোয়া ও নিয়ত</span>
+                            </button>
+
+                            <!-- Hijri Calendar Action Button -->
+                            <button type="button" class="hijri-cal-open-btn" id="open-hijri-cal-btn" title="হিজরি ক্যালেন্ডার দেখুন">
+                                <span>📅 হিজরি ক্যালেন্ডার</span>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Tab 4: Calendar & Analytics -->
+            <section id="panel-analytics" class="tab-panel" role="tabpanel" aria-labelledby="tab-analytics" hidden>
+                <div class="bento-row calendar-header-row">
+                    <article class="bento-card wide-card calendar-nav-card">
+                        <div class="calendar-nav">
+                            <button id="prev-month" class="icon-btn" aria-label="গত মাস">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                            </button>
+                            <h2 id="calendar-title" class="calendar-title">অক্টোবর ২০২৬</h2>
+                            <button id="next-month" class="icon-btn" aria-label="পরবর্তী মাস">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                        <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="মাসিক ক্যালেন্ডার">
+                            <div class="calendar-weekdays" role="row">
+                                <div role="columnheader" aria-label="রবিবার">রবি</div>
+                                <div role="columnheader" aria-label="সোমবার">সোম</div>
+                                <div role="columnheader" aria-label="মঙ্গলবার">মঙ্গল</div>
+                                <div role="columnheader" aria-label="বুধবার">বুধ</div>
+                                <div role="columnheader" aria-label="বৃহস্পতিবার">বৃহ</div>
+                                <div role="columnheader" aria-label="শুক্রবার">শুক্র</div>
+                                <div role="columnheader" aria-label="শনিবার">শনি</div>
+                            </div>
+                            <div class="calendar-days" id="calendar-days" role="row">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="bento-row analytics-row">
+                    <article class="bento-card stat-card" aria-labelledby="stat-jamaah-title">
+                        <header class="card-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: #059669;">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        <h3 id="stat-jamaah-title">জামাত দর</h3>
+                    </header>
+                    <div class="stat-value" id="stat-jamaah">০%</div>
+                    <div class="stat-sub">মাসিক</div>
+                </article>
+                <article class="bento-card stat-card" aria-labelledby="stat-ontime-title">
+                    <header class="card-header">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: #0284C7;">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <h3 id="stat-ontime-title">ওয়াক্তমতো %</h3>
+                    </header>
+                    <div class="stat-value" id="stat-ontime">০%</div>
+                    <div class="stat-sub">মাসিক</div>
+                </article>
+                <article class="bento-card stat-card" aria-labelledby="stat-streak-title">
+                    <header class="card-header">
+                        <svg class="stat-icon flame-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: #D97706;">
+                            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                        </svg>
+                        <h3 id="stat-streak-title">সর্বোচ্চ স্ট্রিক</h3>
+                    </header>
+                    <div class="stat-value" id="stat-max-streak">০ দিন</div>
+                    <div class="stat-sub">রেকর্ড</div>
+                </article>
+                </div>
+            </section>
+
+            <!-- Tab 5: Namaz Rules & Guide -->
+            <section id="panel-guide" class="tab-panel" role="tabpanel" aria-labelledby="tab-guide" hidden>
+                <div class="guide-container">
+                    <header class="guide-header-card">
+                        <div class="guide-header-icon">📖</div>
+                        <div class="guide-header-text">
+                            <h2>সহজ নামাজ শিক্ষা ও নিয়মাবলী</h2>
+                            <p>সহিহ সুন্নাহ মোতাবেক ৫ ওয়াক্ত নামাজ, প্রয়োজনীয় দোয়া ও আমল</p>
+                        </div>
+                    </header>
+                    <!-- Card 1: Rakat Table -->
+                    <article class="guide-accordion-card open" id="guide-acc-rakat">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">📊</span><span class="acc-title">৫ ওয়াক্ত ও জুমু'আর রাকাত তালিকা</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="rakat-table-wrap">
+                                <table class="rakat-table">
+                                    <thead>
+                                        <tr><th>ওয়াক্ত</th><th>ফরজের পূর্বে</th><th>ফরজ</th><th>ফরজের পরে</th><th>বিতর ও নফল</th><th>মোট</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="waqt-clickable-row" data-waqt="fajr" title="ফজরের বিস্তারিত দেখুন"><td><strong>🌅 ফজর</strong> <span class="row-info-hint">ℹ️</span></td><td><span class="rakat-pill sunnah">২ সুন্নাত</span></td><td><span class="rakat-pill fard">২ ফরজ</span></td><td>—</td><td>—</td><td><strong>৪ রাকাত</strong></td></tr>
+                                        <tr class="waqt-clickable-row" data-waqt="dhuhr" title="যোহরের বিস্তারিত দেখুন"><td><strong>☀️ যোহর</strong> <span class="row-info-hint">ℹ️</span></td><td><span class="rakat-pill sunnah">৪ সুন্নাত</span></td><td><span class="rakat-pill fard">৪ ফরজ</span></td><td><span class="rakat-pill sunnah">২ সুন্নাত</span></td><td><span class="rakat-pill nafl">২ নফল</span></td><td><strong>১২ রাকাত</strong></td></tr>
+                                        <tr class="waqt-clickable-row" data-waqt="jumuah" title="জুমু'আর বিস্তারিত দেখুন"><td><strong>🕌 জুমু'আ</strong> <span class="row-info-hint">ℹ️</span></td><td><span class="rakat-pill sunnah">৪ কাবলাল</span></td><td><span class="rakat-pill fard">২ ফরজ</span></td><td><span class="rakat-pill sunnah">৪ বাদাল</span></td><td><span class="rakat-pill nafl">২ সুন্নাত + ২ নফল</span></td><td><strong>১৪ রাকাত</strong></td></tr>
+                                        <tr class="waqt-clickable-row" data-waqt="asr" title="আসরের বিস্তারিত দেখুন"><td><strong>🌤️ আসর</strong> <span class="row-info-hint">ℹ️</span></td><td><span class="rakat-pill sunnah-ghair">৪ সুন্নাত</span></td><td><span class="rakat-pill fard">৪ ফরজ</span></td><td>—</td><td>—</td><td><strong>৮ রাকাত</strong></td></tr>
+                                        <tr class="waqt-clickable-row" data-waqt="maghrib" title="মাগরিবের বিস্তারিত দেখুন"><td><strong>🌆 মাগরিব</strong> <span class="row-info-hint">ℹ️</span></td><td>—</td><td><span class="rakat-pill fard">৩ ফরজ</span></td><td><span class="rakat-pill sunnah">২ সুন্নাত</span></td><td><span class="rakat-pill nafl">২ নফল</span></td><td><strong>৭ রাকাত</strong></td></tr>
+                                        <tr class="waqt-clickable-row" data-waqt="isha" title="এশার বিস্তারিত দেখুন"><td><strong>🌙 এশা</strong> <span class="row-info-hint">ℹ️</span></td><td><span class="rakat-pill sunnah-ghair">৪ সুন্নাত</span></td><td><span class="rakat-pill fard">৪ ফরজ</span></td><td><span class="rakat-pill sunnah">২ সুন্নাত</span></td><td><span class="rakat-pill nafl">২ নফল</span> + <span class="rakat-pill wajib">৩ বিতর</span> + <span class="rakat-pill nafl">২ নফল</span></td><td><strong>১৭ রাকাত</strong></td></tr>
+                                    </tbody>
+                                </table>
+                                <div class="rakat-legend">
+                                    <span class="legend-item"><span class="legend-dot fard"></span>ফরজ (আবশ্যক)</span>
+                                    <span class="legend-item"><span class="legend-dot sunnah"></span>সুন্নতে মুয়াক্কাদা</span>
+                                    <span class="legend-item"><span class="legend-dot wajib"></span>ওয়াজিব (বিতর)</span>
+                                    <span class="legend-item"><span class="legend-dot sunnah-ghair"></span>গায়রে মুয়াক্কাদা (ঐচ্ছিক)</span>
+                                    <span class="legend-item"><span class="legend-dot nafl"></span>নফল</span>
+                                </div>
+                                <p class="rakat-click-tip">💡 <em>যেকোনো ওয়াক্তের সারিতে ক্লিক করে বিস্তারিত ফজিলত, নিয়ত ও নিয়ম দেখুন</em></p>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- Card 2: Step by Step Rules -->
+                    <article class="guide-accordion-card" id="guide-acc-steps">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">🚶‍♂️</span><span class="acc-title">ধাপে ধাপে নামাজ পড়ার পূর্ণ নিয়ম</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="namaz-steps-timeline">
+                                <div class="step-card"><span class="step-badge">১</span><div><strong>নিয়ত ও তাকবীর:</strong> মনে মনে সংকল্প করে উভয় হাত উঠিয়ে "আল্লাহু আকবার" বলে হাত বাঁধুন। <span class="hadith-ref">(বুখারি: ৭৩৬)</span></div></div>
+                                <div class="step-card"><span class="step-badge">২</span><div><strong>সানা ও কিরাত:</strong> সানা পড়ে আউযুবিল্লাহ-বিসমিল্লাহসহ সূরা ফাতিহা ও অন্য সূরা মিলান। <span class="hadith-ref">(বুখারি: ৭৫৬)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৩</span><div><strong>রুকু ও তাসবীহ:</strong> "আল্লাহু আকবার" বলে রুকুতে যান ও অন্তত ৩ বার <em>"সুবহানা রাব্বিয়াল আজিম"</em> বলুন। <span class="hadith-ref">(আবু দাউদ: ৮৬৯)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৪</span><div><strong>কাওমা (দাঁড়ানো):</strong> <em>"সামিআল্লাহু লিমান হামিদাহ"</em> বলে দাঁড়িয়ে বলুন <em>"রব্বানা লাকাল হামদ"</em>। <span class="hadith-ref">(বুখারি: ৭৯৫)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৫</span><div><strong>সিজদা ও তাসবীহ:</strong> "আল্লাহু আকবার" বলে সিজদায় গিয়ে ৩ বার <em>"সুবহানা রাব্বিয়াল আ'লা"</em> বলুন। বসে দ্বিতীয় সিজদা করুন। <span class="hadith-ref">(মুসলিম: ৪৭২)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৬</span><div><strong>শেষ বৈঠক:</strong> শেষ রাকাতে বসে তাশাহহুদ (আত্তাহিয়্যাতু), দরুদে ইবরাহিম ও দোয়ায়ে মাসূরা পড়ুন। <span class="hadith-ref">(বুখারি: ৮৩১)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৭</span><div><strong>সালাম:</strong> ডানে ও বামে <em>"আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহ"</em> বলে নামাজ শেষ করুন। <span class="hadith-ref">(আবু দাউদ: ৯৯৬)</span></div></div>
+                            </div>
+
+                        </div>
+                    </article>
+                    <!-- Card 3: Essential Duas -->
+                    <article class="guide-accordion-card" id="guide-acc-duas">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">🤲</span><span class="acc-title">নামাজের প্রয়োজনীয় দোয়া ও তাসবীহ</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="guide-dua-item">
+                                <h5>১. সানা (নামাজের শুরুতে) <span class="hadith-ref">(তিরমিজি: ২৪৩)</span></h5>
+                                <p class="arabic-text sm">سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلا إِلَهَ غَيْرُكَ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> সুবহানাকা আল্লাহুম্মা ওয়া বিহামদিকা, ওয়া তাবারাকাসমুকা, ওয়া তাআলা জাদ্দুকা, ওয়া লা ইলাহা গাইরুক।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! আমি আপনার প্রশংসাসহ পবিত্রতা ঘোষণা করছি, আপনার নাম বরকতময়, আপনার মর্যাদা অতি উচ্চ এবং আপনি ছাড়া কোনো উপাস্য নেই।</p>
+                            </div>
+                            <div class="guide-dua-item">
+                                <h5>২. তাশাহহুদ (আত্তাহিয়্যাতু) <span class="hadith-ref">(বুখারি: ৮৩১)</span></h5>
+                                <p class="arabic-text sm">التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ السَّلامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ السَّلامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ أَشْهَدُ أَنْ لا إِلَهَ إِلا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আত্তাহিয়্যাতু লিল্লাহি ওয়াস-সালাওয়াতু ওয়াত-তইয়্যিবাতু, আসসালামু আলাইকা আইয়্যুহান-নাবিয়্যু ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহু, আসসালামু আলাইনা ওয়া আলা ইবাদিল্লাহিস-সালিহীন। আশহাদু আল-লা ইলাহা ইল্লাল্লাহু ওয়া আশহাদু আন্না মুহাম্মাদান আবদুহু ওয়া রাসুলুহু।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> যাবতীয় মৌখিক, শারীরিক ও আর্থিক ইবাদত আল্লাহর জন্য। হে নবী! আপনার ওপর শান্তি, আল্লাহর রহমত ও বরকত বর্ষিত হোক। আমাদের ওপর এবং আল্লাহর নেক বান্দাদের ওপর শান্তি বর্ষিত হোক। আমি সাক্ষ্য দিচ্ছি আল্লাহ ছাড়া কোনো উপাস্য নেই এবং মুহাম্মদ (সা.) তাঁর বান্দা ও রাসুল।</p>
+                            </div>
+
+                            <div class="guide-dua-item">
+                                <h5>৩. দরুদে ইবরাহিম <span class="hadith-ref">(বুখারি: ৩৩৭০)</span></h5>
+                                <p class="arabic-text sm">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ، اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিঁও ওয়া আলা আলি মুহাম্মাদ, কামা সাল্লাইতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ। আল্লাহুম্মা বারিক আলা মুহাম্মাদিঁও ওয়া আলা আলি মুহাম্মাদ, কামা বারাকতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! মুহাম্মদ (সা.) ও তাঁর বংশধরদের ওপর শান্তি বর্ষণ করুন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর বংশধরদের ওপর শান্তি বর্ষণ করেছেন। নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত। হে আল্লাহ! মুহাম্মদ (সা.) ও তাঁর বংশধরদের ওপর বরকত নাজিল করুন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর বংশধরদের ওপর বরকত নাজিল করেছেন। নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত।</p>
+                            </div>
+                            <div class="guide-dua-item">
+                                <h5>৪. দোয়ায়ে মাসূরা <span class="hadith-ref">(বুখারি: ৮৩৪)</span></h5>
+                                <p class="arabic-text sm">اللَّهُمَّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْمًا كَثِيرًا وَلا يَغْفِرُ الذُّنُوبَ إِلا أَنْتَ فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِنْدِكَ وَارْحَمْنِي إِنَّكَ أَنْتَ الْغَفُورُ الرَّحِيمُ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আল্লাহুম্মা ইন্নি জালামতু নাফসি জুলমান কাসিরাঁও ওয়া ওয়ালা ইয়াগফিরুজ-জুনুবা ইল্লা আনতা, ফাগফিরলি মাগফিরাতাম মিন ইনদিকা ওয়ারহামনি, ইন্নাকা আনতাল গাফুরুর রাহিম।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! আমি আমার নিজের ওপর অনেক জুলুম করেছি। আপনি ছাড়া গুনাহ মাফ করার আর কেউ নেই। অতএব আপনার পক্ষ থেকে আমাকে বিশেষভাবে ক্ষমা করুন এবং আমার ওপর রহমত বর্ষণ করুন। নিশ্চয়ই আপনি ক্ষমাশীল ও পরম দয়ালু।</p>
+                            </div>
+                            <div class="guide-dua-item">
+                                <h5>৫. দোয়ায়ে কুনুত (বিতর নামাজে) <span class="hadith-ref">(ইবনে আবি শাইবা: ৬৯৬৫)</span></h5>
+                                <p class="arabic-text sm">اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْرَ وَنَشْكُرُكَ وَلا نَكْفُرُكَ وَنَخْلَعُ وَنَتْرُكُ مَنْ يَفْجُرُكَ، اللَّهُمَّ إِيَّاكَ نَعْبُدُ وَلَكَ نُصَلِّي وَنَسْجُدُ وَإِلَيْكَ نَسْعَى وَنَحْفِدُ نَرْجُو رَحْمَتَكَ وَنَخْشَى عَذَابَكَ إِنَّ عَذَابَكَ بِالْكُفَّارِ مُلْحِقٌ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আল্লাহুম্মা ইন্না নাসতাঈনুকা ওয়া নাসতাগফিরুকা ওয়া নু’মিনু বিকা ওয়া নাতাওয়াক্কালু আলাইকা ওয়া নুছনী আলাইকাল খাইর, ওয়া নাশ কুরুকা ওয়ালা নাকফুরুকা ওয়া নাখলাউ ওয়া নাতরুকু মাই ইয়াফজুরুক। আল্লাহুম্মা ইয়্যাকা না’বুদু ওয়ালাকা নুসল্লী ওয়া নাসজুদু ওয়া ইলাইকা নাস'আ ওয়া নাহফিদু, নারজু রাহমাতাকা ওয়া নাখশা আজাবাকা, ইন্না আজাবাকা বিল কুফফারি মুলহিক।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! আমরা আপনারই সাহায্য চাই, আপনার কাছেই ক্ষমা প্রার্থনা করি, আপনার প্রতি ঈমান রাখি এবং আপনার ওপর ভরসা করি। আপনার উত্তম প্রশংসা করি, কৃতজ্ঞতা স্বীকার করি ও অকৃতজ্ঞ হই না। আপনার অবাধ্যদের পরিত্যাগ করি। হে আল্লাহ! আমরা কেবল আপনারই ইবাদত করি, আপনার জন্যই নামাজ পড়ি ও সিজদা করি, আপনার সন্তুষ্টির দিকেই ধাবিত হই। আমরা আপনার রহমতের আশা করি ও শাস্তিকে ভয় করি; নিশ্চয়ই আপনার শাস্তি কাফিরদের ওপর আপতিত হবে।</p>
+                            </div>
+
+
+                        </div>
+                    </article>
+                    <!-- Card 4: Gender Differences -->
+                    <article class="guide-accordion-card" id="guide-acc-gender">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">👥</span><span class="acc-title">নারী ও পুরুষের নামাজের পার্থক্যের গাইড</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="gender-diff-grid">
+                                <div class="gender-diff-box male">
+                                    <h4>👨 পুরুষের নিয়ম</h4>
+                                    <ul>
+                                        <li><strong>তাকবীর:</strong> হাত কান পর্যন্ত উঠানো। <span class="hadith-ref">(বুখারি: ৭৩৬)</span></li>
+                                        <li><strong>হাত বাঁধা:</strong> নাভির নিচে বা বুকের ওপর হাত বাঁধা। <span class="hadith-ref">(আবু দাউদ: ৭৫৬)</span></li>
+                                        <li><strong>রুকু ও সেজদা:</strong> কনুই ও বাজু শরীর থেকে ফাঁকা রাখা। <span class="hadith-ref">(বুখারি: ৮২৮)</span></li>
+                                        <li><strong>বৈঠক:</strong> বাম পায়ের ওপর বসা ও ডান পা খাড়া রাখা। <span class="hadith-ref">(বুখারি: ৮২৮)</span></li>
+                                    </ul>
+                                </div>
+                                <div class="gender-diff-box female">
+                                    <h4>🧕 নারীর নিয়ম</h4>
+                                    <ul>
+                                        <li><strong>তাকবীর:</strong> হাত কাঁধ পর্যন্ত উঠানো। <span class="hadith-ref">(আবদুর রাজ্জাক: ৫০৬৬)</span></li>
+                                        <li><strong>হাত বাঁধা:</strong> বুকের ওপর হাত বাঁধা। <span class="hadith-ref">(ইবনে আবি শাইবা: ৩৯৫৯)</span></li>
+                                        <li><strong>রুকু ও সেজদা:</strong> শরীর সংকুচিত ও মাটির সাথে লেগে থাকা। <span class="hadith-ref">(আবু দাউদ - মরাসিল: ৮৭)</span></li>
+                                        <li><strong>বৈঠক:</strong> উভয় পা ডান দিকে বের করে বসা। <span class="hadith-ref">(ইবনে আবি শাইবা: ২৭৭৮)</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="gender-note">📌 <em>নোট: নারী ও পুরুষের মৌলিক নামাজ একই রকম। তবে সতর ও পর্দার সুবিধার্থে ফিকহবিদ ও সাহাবি-তাবেয়ীগণের আমল অনুযায়ী অঙ্গবিন্যাসে এই সৌন্দর্যপূর্ণ সতর্কতা বজায় রাখা হয়।</em></p>
+
+                        </div>
+                    </article>
+                </div>
+            </section>
+            <!-- Tab 6: Wudu & Purity Guide -->
+            <section id="panel-wudu" class="tab-panel" role="tabpanel" aria-labelledby="tab-wudu" hidden>
+                <div class="guide-container">
+                    <header class="guide-header-card">
+                        <span class="guide-header-icon">💧</span>
+                        <div class="guide-header-text">
+                            <h2>ওজু ও পবিত্রতা নির্দেশিকা</h2>
+                            <p>কুরআন ও সহিহ সুন্নাহ মোতাবেক ওযুর ফরজ, পূর্ণাঙ্গ সুন্নাহ পদ্ধতি, দোয়া ও সতর্কতা</p>
+                        </div>
+                    </header>
+                    <!-- Card 1: 4 Fard of Wudu -->
+                    <article class="guide-accordion-card open" id="wudu-acc-fard">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">✨</span><span class="acc-title">ওযুর ৪টি ফরজ (কুরআনের অকাট্য নির্দেশ)</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="namaz-steps-timeline">
+                                <div class="step-card"><span class="step-badge">১</span><div><strong>মুখমণ্ডল ধোয়া:</strong> চুলের গোড়া থেকে থুতনির নিচ এবং এক কানের লতি থেকে অন্য লতি পর্যন্ত পুরো মুখ একবার ধোয়া ফরজ। <span class="hadith-ref">(সূরা মায়িদা: ৬)</span></div></div>
+                                <div class="step-card"><span class="step-badge">২</span><div><strong>দুই হাত ধোয়া:</strong> উভয় হাত নখ থেকে শুরু করে কনুইসহ একবার ধোয়া ফরজ। <span class="hadith-ref">(সূরা মায়িদা: ৬)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৩</span><div><strong>মাথা মাসেহ করা:</strong> ভেজা হাত দিয়ে মাথার অন্তত চার ভাগের এক ভাগ মাসেহ করা। <span class="hadith-ref">(সহিহ মুসলিম: ২৭৪)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৪</span><div><strong>দুই পা ধোয়া:</strong> উভয় পা নখ থেকে টাখনু (গোড়ালি) সহ একবার ধোয়া ফরজ। <span class="hadith-ref">(সূরা মায়িদা: ৬)</span></div></div>
+                            </div>
+                            <p class="gender-note" style="margin-top: 12px;">📌 <em>সতর্কতা: এই ৪টি অঙ্গের কোনো একটি স্থান সামান্যতম শুকনো থাকলেও ওজু হবে না এবং নামাজ শুদ্ধ হবে না।</em></p>
+                        </div>
+                    </article>
+                    <!-- Card 2: Step-by-Step Sunnah Method -->
+                    <article class="guide-accordion-card open" id="wudu-acc-steps">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">🚶‍♂️</span><span class="acc-title">ধাপে ধাপে ওজুর পূর্ণাঙ্গ সুন্নাহ পদ্ধতি</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="namaz-steps-timeline">
+                                <div class="step-card"><span class="step-badge">১</span><div><strong>নিয়ত ও বিসমিল্লাহ:</strong> পবিত্রতা অর্জনের সংকল্প করে <em>"বিসমিল্লাহ"</em> বলে ওজু শুরু করা। <span class="hadith-ref">(আবু দাউদ: ১০১)</span></div></div>
+                                <div class="step-card"><span class="step-badge">২</span><div><strong>দুই হাত কবজি পর্যন্ত:</strong> উভয় হাত কবজিসহ ৩ বার ধোয়া ও আঙুল খিলাল করা। <span class="hadith-ref">(বুখারি: ১৫৯)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৩</span><div><strong>মেসওয়াক ও কুলি:</strong> মেসওয়াক করে ডান হাতে ৩ বার কুলি করা। <span class="hadith-ref">(বুখারি: ১৯৩৪)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৪</span><div><strong>নাকে পানি দেওয়া:</strong> ডান হাতে নাকে পানি দিয়ে বাম হাতে ৩ বার নাক ঝাড়া। <span class="hadith-ref">(মুসলিম: ২৩৭)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৫</span><div><strong>মুখমণ্ডল ধোয়া:</strong> কপাল থেকে থুতনি এবং দুই কান পর্যন্ত পুরো মুখ ৩ বার ধোয়া। <span class="hadith-ref">(বুখারি: ১৮৬)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৬</span><div><strong>দুই হাত কনুইসহ:</strong> প্রথমে ডান হাত কনুইসহ ৩ বার, এরপর বাম হাত ৩ বার ধোয়া। <span class="hadith-ref">(বুখারি: ১৮৫)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৭</span><div><strong>মাথা ও কান মাসেহ:</strong> ভেজা হাত দিয়ে পুরো মাথা ও কান একবার মাসেহ করা। <span class="hadith-ref">(আবু দাউদ: ১১৮)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৮</span><div><strong>দুই পা ধোয়া:</strong> ডান পা এবং পরে বাম পা টাখনুসহ ৩ বার ধোয়া ও খিলাল করা। <span class="hadith-ref">(বুখারি: ১৬৩)</span></div></div>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- Card 3: Duas of Wudu -->
+                    <article class="guide-accordion-card" id="wudu-acc-duas">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">🤲</span><span class="acc-title">ওযুর মাসনূন দোয়াসমূহ ও ফজিলত</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="guide-dua-item">
+                                <h5>১. ওজু শুরুর দোয়া <span class="hadith-ref">(আবু দাউদ: ১০১)</span></h5>
+                                <p class="arabic-text sm">بِسْمِ اللَّهِ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> বিসমিল্লাহ।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> আল্লাহর নামে শুরু করছি।</p>
+                            </div>
+                            <div class="guide-dua-item">
+                                <h5>২. ওজু শেষের দোয়া (কালেমা শাহাদাত) <span class="hadith-ref">(সহিহ মুসলিম: ২৩৪)</span></h5>
+                                <p class="arabic-text sm">أَشْهَدُ أَنْ لا إِلَهَ إِلا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আশহাদু আল-লা ইলাহা ইল্লাল্লাহু ওয়াহদাহু লা শারীকা লাহু, ওয়া আশহাদু আন্না মুহাম্মাদান আবদুহু ওয়া রাসুলুহু।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> আমি সাক্ষ্য দিচ্ছি আল্লাহ ছাড়া কোনো উপাস্য নেই, তিনি একক, তাঁর কোনো শরিক নেই; এবং সাক্ষ্য দিচ্ছি মুহাম্মদ (সা.) তাঁর বান্দা ও রাসুল।</p>
+                                <p class="waqt-hadith-box" style="margin-top: 8px;">✨ <em>ফজিলত: যে ব্যক্তি ওজু শেষে এই দোয়া পড়বে, তার জন্য জান্নাতের ৮টি দরজাই উন্মুক্ত করে দেওয়া হবে; সে যে দরজা দিয়ে ইচ্ছা প্রবেশ করতে পারবে। (সহিহ মুসলিম: ২৩৪)</em></p>
+                            </div>
+                            <div class="guide-dua-item">
+                                <h5>৩. তাওবার দোয়া <span class="hadith-ref">(তিরমিজি: ৫৫)</span></h5>
+                                <p class="arabic-text sm">اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ</p>
+                                <p class="pron"><strong>উচ্চারণ:</strong> আল্লাহুম্মাজ'আলনী মিনাত তাওওয়াবীনা ওয়াজ'আলনী মিনাল মুতাতাহহিরীন।</p>
+                                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! আমাকে তওবাকারীদের এবং পবিত্রতা অর্জনকারীদের অন্তর্ভুক্ত করুন।</p>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- Card 4: Wudu Nullifiers -->
+                    <article class="guide-accordion-card" id="wudu-acc-breakers">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">⚠️</span><span class="acc-title">ওজু ভঙ্গের কারণসমূহ (প্রধান কারণ ও সতর্কতা)</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="namaz-steps-timeline">
+                                <div class="step-card"><span class="step-badge">১</span><div><strong>প্রস্রাব-পায়খানার রাস্তা দিয়ে কিছু বের হওয়া:</strong> বায়ু, প্রস্রাব, পায়খানা বা যেকোনো অপবিত্র বস্তু নির্গত হলে ওজু নষ্ট হয়। <span class="hadith-ref">(বুখারি: ১৩৫)</span></div></div>
+                                <div class="step-card"><span class="step-badge">২</span><div><strong>রক্ত বা পুঁজ বের হয়ে গড়ানো:</strong> শরীর থেকে রক্ত, পুঁজ বা হলুদ পানি বের হয়ে গড়িয়ে পড়লে। <span class="hadith-ref">(দারা কুতনী: ৫৫৩)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৩</span><div><strong>মুখ ভরে বমি হওয়া:</strong> খাদ্য, পানি বা রক্তের বমি মুখ ভরে আসলে। <span class="hadith-ref">(তিরমিজি: ৮৭)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৪</span><div><strong>হেলান দিয়ে বা শুয়ে ঘুমানো:</strong> এমনভাবে হেলান দিয়ে ঘুমানো যাতে হেলান দেওয়া জিনিস সরালে পড়ে যাবে। <span class="hadith-ref">(আবু দাউদ: ২০৩)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৫</span><div><strong>অচেতন বা মাতাল হওয়া:</strong> অজ্ঞান, মাতাল বা ওষুধজনিত কারণে বুদ্ধি লোপ পেলে। <span class="hadith-ref">(আবু দাউদ: ২০৩)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৬</span><div><strong>নামাজে উচ্চস্বরে হাসা:</strong> রুকু-সিজদাবিশিষ্ট নামাজে অট্টহাসি দিলে ওজু ও নামাজ উভয়ই বাতিল হয়। <span class="hadith-ref">(দারা কুতনী: ৬১২)</span></div></div>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- Card 5: Tayammum Rules -->
+                    <article class="guide-accordion-card" id="wudu-acc-tayammum">
+                        <button type="button" class="guide-accordion-header">
+                            <span class="acc-title-group"><span class="acc-icon">🏜️</span><span class="acc-title">তায়াম্মুমের সংক্ষিপ্ত ও সহিহ নিয়ম</span></span>
+                            <span class="acc-arrow">▼</span>
+                        </button>
+                        <div class="guide-accordion-body">
+                            <div class="namaz-steps-timeline">
+                                <div class="step-card"><span class="step-badge">১</span><div><strong>পবিত্রতার নিয়ত:</strong> পবিত্রতা অর্জনের সংকল্প করে <em>"বিসমিল্লাহ"</em> বলা। <span class="hadith-ref">(সূরা নিসা: ৪৩)</span></div></div>
+                                <div class="step-card"><span class="step-badge">২</span><div><strong>মুখমণ্ডল মাসেহ:</strong> পবিত্র মাটিতে উভয় হাতের তালু মৃদু মেরে হাত ঝেড়ে নিয়ে পুরো মুখ একবার মাসেহ করা। <span class="hadith-ref">(বুখারি: ৩৩৮)</span></div></div>
+                                <div class="step-card"><span class="step-badge">৩</span><div><strong>দুই হাত মাসেহ:</strong> পুনরায় পবিত্র মাটিতে উভয় হাত মেরে ডান ও বাম হাত কনুইসহ মাসেহ করা। <span class="hadith-ref">(দারা কুতনী: ৭১২)</span></div></div>
+                            </div>
+                            <p class="gender-note" style="margin-top: 12px;">📌 <em>নোট: পানি না পাওয়া গেলে অথবা রোগের কারণে পানি ব্যবহারে ক্ষতির আশংকা থাকলে পবিত্র মাটি দিয়ে তায়াম্মুম করা যায়।</em></p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Tab 7: Complete Al-Qur'an (১১৪টি সূরা) -->
+            <section id="panel-quran" class="tab-panel" role="tabpanel" aria-labelledby="tab-quran" hidden>
+                <!-- Quran Dashboard Header -->
+                <div class="quran-header-card bento-card">
+                    <div class="quran-header-top">
+                        <div class="quran-title-wrap">
+                            <span class="quran-icon">📖</span>
+                            <div>
+                                <h2 class="quran-title">আল কুরআনুল কারীম</h2>
+                                <p class="quran-subtitle">পূর্ণাঙ্গ ১১৪টি সূরা • আরবি আয়াত • বাংলা উচ্চারণ • সহজ সরল অনুবাদ</p>
+                            </div>
+                        </div>
+                        <button type="button" id="quran-open-bookmarks-btn" class="quran-bookmark-pill">
+                            <span>⭐ বুকমার্কসমূহ</span>
+                            <span id="quran-bookmark-count" class="badge">০</span>
+                        </button>
+                    </div>
+
+                    <!-- Last Read Quick Resume Banner -->
+                    <div id="quran-last-read-card" class="quran-last-read-banner" style="display: none;">
+                        <div class="last-read-info">
+                            <span class="last-read-tag">সর্বশেষ পঠিত</span>
+                            <span id="quran-last-read-title" class="last-read-text">সূরা আল-ফাতিহা (আয়াত ১)</span>
+                        </div>
+                        <button type="button" id="quran-resume-btn" class="btn btn-primary btn-sm">পড়ুন →</button>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="quran-controls" id="quran-controls-bar">
+                        <div class="quran-search-wrap">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="quran-search-input" placeholder="সূরা খুঁজুন (যেমন: ফাতিহা, বাকারা, Yasin, বা ক্রমিক নম্বর)..." aria-label="সূরা অনুসন্ধান" />
+                            <button type="button" id="quran-search-clear" class="clear-search-btn" style="display: none;">✕</button>
+                        </div>
+                        <div class="quran-filter-chips">
+                            <button type="button" class="quran-chip active" data-filter="all">সব (১১৪)</button>
+                            <button type="button" class="quran-chip" data-filter="মাক্কী">মাক্কী (৮৬)</button>
+                            <button type="button" class="quran-chip" data-filter="মাদানী">মাদানী (২৮)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1. Surah Grid List View -->
+                <div id="quran-surahs-grid" class="quran-surahs-grid"></div>
+
+                <!-- 2. Surah Reader View (Hidden by default) -->
+                <div id="quran-reader-container" class="quran-reader-container" style="display: none;">
+                    <div class="quran-reader-nav">
+                        <button type="button" id="quran-back-btn" class="quran-back-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            <span>সূরার তালিকা</span>
+                        </button>
+                        <div class="quran-reader-title-box">
+                            <h3 id="quran-reader-title">সূরা আল-ফাতিহা</h3>
+                            <span id="quran-reader-meta">মাক্কী • ৭টি আয়াত</span>
+                        </div>
+                        <div class="quran-reader-actions">
+                            <button type="button" id="quran-reader-prev-surah" class="nav-chevron-btn" title="পূর্ববর্তী সূরা">‹</button>
+                            <button type="button" id="quran-reader-next-surah" class="nav-chevron-btn" title="পরবর্তী সূরা">›</button>
+                        </div>
+                    </div>
+
+                    <!-- Bismillah Calligraphy -->
+                    <div id="quran-bismillah" class="quran-bismillah-box">
+                        <span class="bismillah-arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</span>
+                        <span class="bismillah-trans">পরম করুণাময় অসীম দয়ালু আল্লাহর নামে শুরু করছি</span>
+                    </div>
+
+                    <!-- Ayahs List -->
+                    <div id="quran-ayahs-list" class="quran-ayahs-list"></div>
+                </div>
+            </section>
+
+            <!-- Tab 8: Hadith Sharif (হাদীস শরীফ) -->
+            <section id="panel-hadith" class="tab-panel" role="tabpanel" aria-labelledby="tab-hadith" hidden>
+                <!-- Hadith Header Card -->
+                <div class="hadith-header-card bento-card">
+                    <div class="hadith-header-top">
+                        <div class="hadith-title-wrap">
+                            <div class="hadith-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                    <path d="M8 7h8"/>
+                                    <path d="M8 11h7"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="hadith-title">সহীহ হাদীস সংকলন</h2>
+                                <p class="hadith-subtitle">বিষয়ভিত্তিক সহীহ হাদীস • নির্ভুল আরবি মতন • সহজ সরল বাংলা অনুবাদ ও তথ্যসূত্র</p>
+                            </div>
+                        </div>
+                        <button type="button" id="hadith-open-bookmarks-btn" class="hadith-bookmark-pill">
+                            <span>⭐ বুকমার্কসমূহ</span>
+                            <span id="hadith-bookmark-count" class="badge">০</span>
+                        </button>
+                    </div>
+
+                    <!-- Search & Controls -->
+                    <div class="hadith-controls">
+                        <div class="hadith-search-wrap">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            <input type="text" id="hadith-search-input" placeholder="হাদীস খুঁজুন (যেমন: নামায, নিয়ত, রোজা, বুখারী, আবু হুরায়রা বা কোনো শব্দ)..." aria-label="হাদীস অনুসন্ধান" />
+                            <button type="button" id="hadith-search-clear" class="clear-search-btn" style="display: none;">✕</button>
+                        </div>
+
+                        <!-- Category Filter Chips -->
+                        <div class="hadith-filter-group">
+                            <span class="filter-label">বিষয় অনুযায়ী:</span>
+                            <div class="hadith-category-chips" id="hadith-category-chips">
+                                <button type="button" class="hadith-chip active" data-category="all">সব বিষয়</button>
+                            </div>
+                        </div>
+
+                        <!-- Book Filter Chips -->
+                        <div class="hadith-book-filter-row">
+                            <span class="filter-label">গ্রন্থ অনুযায়ী:</span>
+                            <div class="hadith-book-chips" id="hadith-book-chips">
+                                <button type="button" class="hadith-sub-chip active" data-book="all">সকল গ্রন্থ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hadith Count / Status Info -->
+                <div class="hadith-status-bar">
+                    <span id="hadith-results-count" class="hadith-results-count">হাদীস লোড হচ্ছে...</span>
+                </div>
+
+                <!-- Hadiths Cards List Container -->
+                <div id="hadith-cards-container" class="hadith-cards-container"></div>
+            </section>
+        </main>
+
+        <!-- Waqt Detail Modal (Glassmorphism) -->
+        <dialog id="waqt-detail-modal" class="glass-modal waqt-modal" role="dialog" aria-modal="true" aria-labelledby="waqt-modal-title">
+            <div class="modal-backdrop" id="waqt-modal-backdrop" tabindex="-1"></div>
+            <div class="modal-content waqt-modal-content">
+                <header class="modal-header">
+                    <div class="waqt-modal-header-info">
+                        <span id="waqt-modal-icon" class="waqt-modal-icon">🌅</span>
+                        <div>
+                            <h3 id="waqt-modal-title">ফজর নামাজ</h3>
+                            <span id="waqt-modal-rakat" class="waqt-modal-badge">মোট ৪ রাকাত</span>
+                        </div>
+                    </div>
+                    <button id="close-waqt-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </header>
+                <div class="waqt-modal-body" id="waqt-modal-body">
+                    <!-- Dynamic content rendered via JavaScript -->
+                </div>
+            </div>
+        </dialog>
+
+        <!-- Notes Modal (Glassmorphism) -->
+        <dialog id="notes-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-backdrop" tabindex="-1"></div>
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h3 id="modal-title">নোটস<span id="modal-prayer-name"></span></h3>
+                    <button id="close-notes" class="icon-btn" aria-label="বন্ধ করুন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </header>
+                <textarea id="notes-input" placeholder="এখানে নোট লিখুন..." aria-label="নামাজের নোটস" rows="6"></textarea>
+                <footer class="modal-footer">
+                    <button id="cancel-notes" class="btn btn-ghost">বাতিল</button>
+                    <button id="save-notes" class="btn btn-primary">সংরক্ষণ</button>
+                </footer>
+            </div>
+        </dialog>
+
+        <!-- Hijri Calendar Modal (Glassmorphism) -->
+        <dialog id="hijri-calendar-modal" class="glass-modal hijri-modal" role="dialog" aria-modal="true" aria-labelledby="hijri-modal-title">
+            <div class="modal-backdrop" id="hijri-modal-backdrop" tabindex="-1"></div>
+            <div class="modal-content hijri-modal-content">
+                <header class="modal-header hijri-modal-header">
+                    <div class="hijri-modal-title-wrap">
+                        <button type="button" id="hijri-prev-month" class="cal-nav-btn" aria-label="আগের হিজরি মাস" title="আগের মাস">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div class="hijri-month-heading">
+                            <h3 id="hijri-modal-title">হিজরি ক্যালেন্ডার</h3>
+                            <span id="hijri-modal-subtitle" class="hijri-sub">চলতি মাস</span>
+                        </div>
+                        <button type="button" id="hijri-next-month" class="cal-nav-btn" aria-label="পরের হিজরি মাস" title="পরের মাস">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <button id="close-hijri-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </header>
+
+                <div class="hijri-cal-legend">
+                    <span class="legend-item"><span class="legend-dot ayyam"></span>আইয়ামে বিজ (১৩-১৫)</span>
+                    <span class="legend-item"><span class="legend-dot today"></span>আজ</span>
+                </div>
+
+                <div class="cal-popover-weekdays hijri-weekdays">
+                    <span>শনি</span>
+                    <span>রবি</span>
+                    <span>সোম</span>
+                    <span>মঙ্গল</span>
+                    <span>বুধ</span>
+                    <span>বৃহ</span>
+                    <span class="jumuah-header">শুক্র</span>
+                </div>
+
+                <div id="hijri-modal-days-grid" class="cal-popover-days-grid hijri-days-grid">
+                    <!-- Populated dynamically by JS -->
+                </div>
+
+                <div id="hijri-selected-info" class="hijri-info-box">
+                    <div class="hijri-info-main" id="hijri-info-text">যেকোনো তারিখে ক্লিক করে বিস্তারিত দেখুন</div>
+                </div>
+
+                <footer class="modal-footer hijri-modal-footer">
+                    <button type="button" id="hijri-today-jump-btn" class="btn btn-ghost">আজকের দিন</button>
+                    <button type="button" id="hijri-modal-close-btn" class="btn btn-primary">বন্ধ করুন</button>
+                </footer>
+            </div>
+        </dialog>
+
+        <!-- City Selector Modal (Glassmorphism) -->
+        <dialog id="city-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="city-modal-title">
+            <div class="modal-backdrop" id="city-modal-backdrop"></div>
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h3 id="city-modal-title">📍 শহর নির্বাচন করুন</h3>
+                    <button id="close-city-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </header>
+<div class="city-quick-picks">
+                    <span class="quick-pick-label">বিভাগ নির্বাচন (৮টি বিভাগ):</span>
+                    <div class="quick-city-pills">
+                        <button type="button" class="city-pill-btn active" data-city="Dhaka" data-bn="ঢাকা">ঢাকা</button>
+                        <button type="button" class="city-pill-btn" data-city="Chittagong" data-bn="চট্টগ্রাম">চট্টগ্রাম</button>
+                        <button type="button" class="city-pill-btn" data-city="Rajshahi" data-bn="রাজশাহী">রাজশাহী</button>
+                        <button type="button" class="city-pill-btn" data-city="Barisal" data-bn="বরিশাল">বরিশাল</button>
+                        <button type="button" class="city-pill-btn" data-city="Khulna" data-bn="খুলনা">খুলনা</button>
+                        <button type="button" class="city-pill-btn" data-city="Sylhet" data-bn="সিলেট">সিলেট</button>
+                        <button type="button" class="city-pill-btn" data-city="Rangpur" data-bn="রংপুর">রংপুর</button>
+                        <button type="button" class="city-pill-btn" data-city="Mymensingh" data-bn="ময়মনসিংহ">ময়মনসিংহ</button>
+                    </div>
+                </div>
+                <div class="district-select-group">
+                    <label for="district-select" class="quick-pick-label">বাংলাদেশের সকল জেলা (৬৪টি জেলা থেকে নির্বাচন করুন):</label>
+                    <select id="district-select" class="district-select">
+                        <option value="">-- জেলা নির্বাচন করুন --</option>
+                        <optgroup label="ঢাকা বিভাগ (Dhaka Division - ১৩ জেলা)">
+                            <option value="Dhaka" data-bn="ঢাকা">ঢাকা (Dhaka)</option>
+                            <option value="Gazipur" data-bn="গাজীপুর">গাজীপুর (Gazipur)</option>
+                            <option value="Narayanganj" data-bn="নারায়ণগঞ্জ">নারায়ণগঞ্জ (Narayanganj)</option>
+                            <option value="Tangail" data-bn="টাঙ্গাইল">টাঙ্গাইল (Tangail)</option>
+                            <option value="Kishoreganj" data-bn="কিশোরগঞ্জ">কিশোরগঞ্জ (Kishoreganj)</option>
+                            <option value="Manikganj" data-bn="মানিকগঞ্জ">মানিকগঞ্জ (Manikganj)</option>
+                            <option value="Munshiganj" data-bn="মুন্সীগঞ্জ">মুন্সীগঞ্জ (Munshiganj)</option>
+                            <option value="Narsingdi" data-bn="নরসিংদী">নরসিংদী (Narsingdi)</option>
+                            <option value="Faridpur" data-bn="ফরিদপুর">ফরিদপুর (Faridpur)</option>
+                            <option value="Gopalganj" data-bn="গোপালগঞ্জ">গোপালগঞ্জ (Gopalganj)</option>
+                            <option value="Madaripur" data-bn="মাদারীপুর">মাদারীপুর (Madaripur)</option>
+                            <option value="Rajbari" data-bn="রাজবাড়ী">রাজবাড়ী (Rajbari)</option>
+                            <option value="Shariatpur" data-bn="শরীয়তপুর">শরীয়তপুর (Shariatpur)</option>
+                        </optgroup>
+                        <optgroup label="চট্টগ্রাম বিভাগ (Chittagong Division - ১১ জেলা)">
+                            <option value="Chittagong" data-bn="চট্টগ্রাম">চট্টগ্রাম (Chittagong)</option>
+                            <option value="Cox's Bazar" data-bn="কক্সবাজার">কক্সবাজার (Cox's Bazar)</option>
+                            <option value="Comilla" data-bn="কুমিল্লা">কুমিল্লা (Comilla)</option>
+                            <option value="Feni" data-bn="ফেনী">ফেনী (Feni)</option>
+                            <option value="Brahmanbaria" data-bn="ব্রাহ্মণবাড়িয়া">ব্রাহ্মণবাড়িয়া (Brahmanbaria)</option>
+                            <option value="Rangamati" data-bn="রাঙ্গামাটি">রাঙ্গামাটি (Rangamati)</option>
+                            <option value="Noakhali" data-bn="নোয়াখালী">নোয়াখালী (Noakhali)</option>
+                            <option value="Chandpur" data-bn="চাঁদপুর">চাঁদপুর (Chandpur)</option>
+                            <option value="Lakshmipur" data-bn="লক্ষ্মীপুর">লক্ষ্মীপুর (Lakshmipur)</option>
+                            <option value="Khagrachhari" data-bn="খাগড়াছড়ি">খাগড়াছড়ি (Khagrachhari)</option>
+                            <option value="Bandarban" data-bn="বান্দরবান">বান্দরবান (Bandarban)</option>
+                        </optgroup>
+                        <optgroup label="রাজশাহী বিভাগ (Rajshahi Division - ৮ জেলা)">
+                            <option value="Rajshahi" data-bn="রাজশাহী">রাজশাহী (Rajshahi)</option>
+                            <option value="Bogura" data-bn="বগুড়া">বগুড়া (Bogura)</option>
+                            <option value="Pabna" data-bn="পাবনা">পাবনা (Pabna)</option>
+                            <option value="Sirajganj" data-bn="সিরাজগঞ্জ">সিরাজগঞ্জ (Sirajganj)</option>
+                            <option value="Naogaon" data-bn="নওগাঁ">নওগাঁ (Naogaon)</option>
+                            <option value="Natore" data-bn="নাটোর">নাটোর (Natore)</option>
+                            <option value="Chapainawabganj" data-bn="চাঁপাইনবাবগঞ্জ">চাঁপাইনবাবগঞ্জ (Chapainawabganj)</option>
+                            <option value="Joypurhat" data-bn="জয়পুরহাট">জয়পুরহাট (Joypurhat)</option>
+                        </optgroup>
+                        <optgroup label="বরিশাল বিভাগ (Barishal Division - ৬ জেলা)">
+                            <option value="Barisal" data-bn="বরিশাল">বরিশাল (Barishal)</option>
+                            <option value="Patuakhali" data-bn="পটুয়াখালী">পটুয়াখালী (Patuakhali)</option>
+                            <option value="Bhola" data-bn="ভোলা">ভোলা (Bhola)</option>
+                            <option value="Pirojpur" data-bn="পিরোজপুর">পিরোজপুর (Pirojpur)</option>
+                            <option value="Barguna" data-bn="বরগুনা">বরগুনা (Barguna)</option>
+                            <option value="Jhalokati" data-bn="ঝালকাঠি">ঝালকাঠি (Jhalokati)</option>
+                        </optgroup>
+                        <optgroup label="খুলনা বিভাগ (Khulna Division - ১০ জেলা)">
+                            <option value="Khulna" data-bn="খুলনা">খুলনা (Khulna)</option>
+                            <option value="Jashore" data-bn="যশোর">যশোর (Jashore)</option>
+                            <option value="Kushtia" data-bn="কুষ্টিয়া">কুষ্টিয়া (Kushtia)</option>
+                            <option value="Satkhira" data-bn="সাতক্ষীরা">সাতক্ষীরা (Satkhira)</option>
+                            <option value="Bagerhat" data-bn="বাগেরহাট">বাগেরহাট (Bagerhat)</option>
+                            <option value="Jhenaidah" data-bn="ঝিনাইদহ">ঝিনাইদহ (Jhenaidah)</option>
+                            <option value="Chuadanga" data-bn="চুয়াডাঙ্গা">চুয়াডাঙ্গা (Chuadanga)</option>
+                            <option value="Magura" data-bn="মাগুরা">মাগুরা (Magura)</option>
+                            <option value="Meherpur" data-bn="মেহেরপুর">মেহেরপুর (Meherpur)</option>
+                            <option value="Narail" data-bn="নড়াইল">নড়াইল (Narail)</option>
+                        </optgroup>
+                        <optgroup label="সিলেট বিভাগ (Sylhet Division - ৪ জেলা)">
+                            <option value="Sylhet" data-bn="সিলেট">সিলেট (Sylhet)</option>
+                            <option value="Moulvibazar" data-bn="মৌলভীবাজার">মৌলভীবাজার (Moulvibazar)</option>
+                            <option value="Habiganj" data-bn="হবিগঞ্জ">হবিগঞ্জ (Habiganj)</option>
+                            <option value="Sunamganj" data-bn="সুনামগঞ্জ">সুনামগঞ্জ (Sunamganj)</option>
+                        </optgroup>
+                        <optgroup label="রংপুর বিভাগ (Rangpur Division - ৮ জেলা)">
+                            <option value="Rangpur" data-bn="রংপুর">রংপুর (Rangpur)</option>
+                            <option value="Dinajpur" data-bn="দিনাজপুর">দিনাজপুর (Dinajpur)</option>
+                            <option value="Gaibandha" data-bn="গাইবান্ধা">গাইবান্ধা (Gaibandha)</option>
+                            <option value="Kurigram" data-bn="কুড়িগ্রাম">কুড়িগ্রাম (Kurigram)</option>
+                            <option value="Lalmonirhat" data-bn="লালমনিরহাট">লালমনিরহাট (Lalmonirhat)</option>
+                            <option value="Nilphamari" data-bn="নীলফামারী">নীলফামারী (Nilphamari)</option>
+                            <option value="Panchagarh" data-bn="পঞ্চগড়">পঞ্চগড় (Panchagarh)</option>
+                            <option value="Thakurgaon" data-bn="ঠাকুরগাঁও">ঠাকুরগাঁও (Thakurgaon)</option>
+                        </optgroup>
+                        <optgroup label="ময়মনসিংহ বিভাগ (Mymensingh Division - ৪ জেলা)">
+                            <option value="Mymensingh" data-bn="ময়মনসিংহ">ময়মনসিংহ (Mymensingh)</option>
+                            <option value="Jamalpur" data-bn="জামালপুর">জামালপুর (Jamalpur)</option>
+                            <option value="Netrokona" data-bn="নেত্রকোণা">নেত্রকোণা (Netrokona)</option>
+                            <option value="Sherpur" data-bn="শেরপুর">শেরপুর (Sherpur)</option>
+                        </optgroup>
+                    </select>
+                </div>
+<div class="country-select-group">
+                    <label for="country-select" class="quick-pick-label">অন্যান্য দেশ (বাংলাদেশ ব্যতীত):</label>
+                    <select id="country-select" class="district-select">
+                        <option value="">-- দেশ নির্বাচন করুন (অন্যান্য দেশ) --</option>
+                        <optgroup label="জনপ্রিয় দেশসমূহ (প্রবাসী ভাই-বোনদের জন্য)">
+                            <option value="Saudi Arabia" data-bn="সৌদি আরব">সৌদি আরব (Saudi Arabia)</option>
+                            <option value="United Arab Emirates" data-bn="সংযুক্ত আরব আমিরাত">সংযুক্ত আরব আমিরাত (United Arab Emirates / UAE)</option>
+                            <option value="Qatar" data-bn="কাতার">কাতার (Qatar)</option>
+                            <option value="Kuwait" data-bn="কুয়েত">কুয়েত (Kuwait)</option>
+                            <option value="Oman" data-bn="ওমান">ওমান (Oman)</option>
+                            <option value="Bahrain" data-bn="বাহরাইন">বাহরাইন (Bahrain)</option>
+                            <option value="Malaysia" data-bn="মালয়েশিয়া">মালয়েশিয়া (Malaysia)</option>
+                            <option value="Singapore" data-bn="সিঙ্গাপুর">সিঙ্গাপুর (Singapore)</option>
+                            <option value="United Kingdom" data-bn="যুক্তরাজ্য">যুক্তরাজ্য (United Kingdom / UK)</option>
+                            <option value="United States" data-bn="যুক্তরাষ্ট্র">যুক্তরাষ্ট্র (United States / USA)</option>
+                            <option value="Canada" data-bn="কানাডা">কানাডা (Canada)</option>
+                            <option value="Australia" data-bn="অস্ট্রেলিয়া">অস্ট্রেলিয়া (Australia)</option>
+                            <option value="Italy" data-bn="ইতালি">ইতালি (Italy)</option>
+                            <option value="Germany" data-bn="জার্মানি">জার্মানি (Germany)</option>
+                            <option value="France" data-bn="ফ্রান্স">ফ্রান্স (France)</option>
+                            <option value="Portugal" data-bn="পর্তুগাল">পর্তুগাল (Portugal)</option>
+                            <option value="Spain" data-bn="স্পেন">স্পেন (Spain)</option>
+                            <option value="Japan" data-bn="জাপান">জাপান (Japan)</option>
+                            <option value="South Korea" data-bn="দক্ষিণ কোরিয়া">দক্ষিণ কোরিয়া (South Korea)</option>
+                            <option value="Turkey" data-bn="তুরস্ক">তুরস্ক (Turkey)</option>
+                            <option value="Egypt" data-bn="মিশর">মিশর (Egypt)</option>
+                            <option value="India" data-bn="ভারত">ভারত (India)</option>
+                            <option value="Pakistan" data-bn="পাকিস্তান">পাকিস্তান (Pakistan)</option>
+                        </optgroup>
+                        <optgroup label="বিশ্বের অন্যান্য সকল দেশ (A-Z)">
+                            <option value="Afghanistan" data-bn="আফগানিস্তান">Afghanistan (আফগানিস্তান)</option>
+                            <option value="Albania" data-bn="আলবেনিয়া">Albania (আলবেনিয়া)</option>
+                            <option value="Algeria" data-bn="আলজেরিয়া">Algeria (আলজেরিয়া)</option>
+                            <option value="Argentina" data-bn="আর্জেন্টিনা">Argentina (আর্জেন্টিনা)</option>
+                            <option value="Austria" data-bn="অস্ট্রিয়া">Austria (অস্ট্রিয়া)</option>
+                            <option value="Azerbaijan" data-bn="আজারবাইজান">Azerbaijan (আজারবাইজান)</option>
+                            <option value="Belgium" data-bn="বেলজিয়াম">Belgium (বেলজিয়াম)</option>
+                            <option value="Bhutan" data-bn="ভুটান">Bhutan (ভুটান)</option>
+                            <option value="Brazil" data-bn="ব্রাজিল">Brazil (ব্রাজিল)</option>
+                            <option value="Brunei" data-bn="ব্রুনাই">Brunei (ব্রুনাই)</option>
+                            <option value="China" data-bn="চীন">China (চীন)</option>
+                            <option value="Cyprus" data-bn="সাইপ্রাস">Cyprus (সাইপ্রাস)</option>
+                            <option value="Denmark" data-bn="ডেনমার্ক">Denmark (ডেনমার্ক)</option>
+                            <option value="Finland" data-bn="ফিনল্যান্ড">Finland (ফিনল্যান্ড)</option>
+                            <option value="Greece" data-bn="গ্রীস">Greece (গ্রীস)</option>
+                            <option value="Indonesia" data-bn="ইন্দোনেশিয়া">Indonesia (ইন্দোনেশিয়া)</option>
+                            <option value="Iran" data-bn="ইরান">Iran (ইরান)</option>
+                            <option value="Iraq" data-bn="ইরাক">Iraq (ইরাক)</option>
+                            <option value="Ireland" data-bn="আয়ারল্যান্ড">Ireland (আয়ারল্যান্ড)</option>
+                            <option value="Jordan" data-bn="জর্ডান">Jordan (জর্ডান)</option>
+                            <option value="Lebanon" data-bn="লেবানন">Lebanon (লেবানন)</option>
+                            <option value="Libya" data-bn="লিবিয়া">Libya (লিবিয়া)</option>
+                            <option value="Maldives" data-bn="মালদ্বীপ">Maldives (মালদ্বীপ)</option>
+                            <option value="Morocco" data-bn="মরক্কো">Morocco (মরক্কো)</option>
+                            <option value="Nepal" data-bn="নেপাল">Nepal (নেপাল)</option>
+                            <option value="Netherlands" data-bn="নেদারল্যান্ডস">Netherlands (নেদারল্যান্ডস)</option>
+                            <option value="New Zealand" data-bn="নিউজিল্যান্ড">New Zealand (নিউজিল্যান্ড)</option>
+                            <option value="Norway" data-bn="নরওয়ে">Norway (নরওয়ে)</option>
+                            <option value="Palestine" data-bn="ফিলিস্তিন">Palestine (ফিলিস্তিন)</option>
+                            <option value="Philippines" data-bn="ফিলিপাইন">Philippines (ফিলিপাইন)</option>
+                            <option value="Poland" data-bn="পোল্যান্ড">Poland (পোল্যান্ড)</option>
+                            <option value="Russia" data-bn="রাশিয়া">Russia (রাশিয়া)</option>
+                            <option value="South Africa" data-bn="দক্ষিণ আফ্রিকা">South Africa (দক্ষিণ আফ্রিকা)</option>
+                            <option value="Sri Lanka" data-bn="শ্রীলঙ্কা">Sri Lanka (শ্রীলঙ্কা)</option>
+                            <option value="Sweden" data-bn="সুইডেন">Sweden (সুইডেন)</option>
+                            <option value="Switzerland" data-bn="সুইজারল্যান্ড">Switzerland (সুইজারল্যান্ড)</option>
+                            <option value="Syria" data-bn="সিরিয়া">Syria (সিরিয়া)</option>
+                            <option value="Thailand" data-bn="থাইল্যান্ড">Thailand (থাইল্যান্ড)</option>
+                        </optgroup>
+                    </select>
+                    <input type="text" id="custom-city-input" placeholder="অথবা দেশের নাম নিজে লিখুন (যেমন: Saudi Arabia, UAE, Qatar, UK...)" style="margin-top: 8px;" />
+                </div>
+
+                <footer class="modal-footer">
+                    <button id="cancel-city-modal" class="btn btn-ghost">বাতিল</button>
+                    <button id="save-city-modal" class="btn btn-primary">সেভ করুন</button>
+                </footer>
+            </div>
+        </dialog>
+
+        <!-- Jumuah Sunnah Deeds Modal -->
+        <dialog id="jumuah-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="jumuah-modal-title">
+            <div class="modal-backdrop" id="jumuah-modal-backdrop" tabindex="-1"></div>
+            <div class="modal-content jumuah-modal-content">
+                <header class="modal-header">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.4rem;">🕌</span>
+                        <h3 id="jumuah-modal-title">জুমু'আ বার ও বিশেষ সুন্নাত আমল</h3>
+                    </div>
+                    <button id="close-jumuah-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </header>
+
+                <div class="jumuah-deeds-list">
+                    <!-- Deed 1: Surah Kahf -->
+                    <label class="jumuah-deed-item">
+                        <input type="checkbox" id="deed-kahf" class="jumuah-checkbox">
+                        <div class="deed-content">
+                            <div class="deed-title">📖 সূরা কাহাফ তিলাওয়াত</div>
+                            <div class="deed-desc">"যে ব্যক্তি জুমু'আর দিন সূরা কাহাফ তিলাওয়াত করবে, তার জন্য এক জুমু'আ থেকে অন্য জুমু'আ পর্যন্ত đặc biệt নূর চমকাতে থাকবে।" (সহিহ আত-তারগিব: ৭৩৬)</div>
+                        </div>
+                    </label>
+
+                    <!-- Deed 2: Durood -->
+                    <label class="jumuah-deed-item">
+                        <input type="checkbox" id="deed-durood" class="jumuah-checkbox">
+                        <div class="deed-content">
+                            <div class="deed-title">💖 অধিক দরুদ শরীফ পাঠ</div>
+                            <div class="deed-desc">"তোমরা জুমু'আর দিনে আমার উপর অধিক পরিমাণে দরুদ পাঠ করো, কেননা তোমাদের দরুদ আমার কাছে পেশ করা হয়।" (আবু দাউদ: ১০৪৭)</div>
+                        </div>
+                    </label>
+
+                    <!-- Deed 3: Ghusl & Cleanliness -->
+                    <label class="jumuah-deed-item">
+                        <input type="checkbox" id="deed-ghusl" class="jumuah-checkbox">
+                        <div class="deed-content">
+                            <div class="deed-title">🚿 জুমু'আর বিশেষ প্রস্তুতি</div>
+                            <div class="deed-desc">সুন্নাহ অনুযায়ী গোসল করা, মিসওয়াক করা, পরিচ্ছন্ন পোশাক পরিধান ও আতর/সুগন্ধি ব্যবহার করা। (বুখারি: ৮৮০)</div>
+                        </div>
+                    </label>
+
+                    <!-- Deed 4: Dua after Asr -->
+                    <label class="jumuah-deed-item">
+                        <input type="checkbox" id="deed-dua" class="jumuah-checkbox">
+                        <div class="deed-content">
+                            <div class="deed-title">🤲 আসর পরবর্তী দোয়া কবুলের মুহূর্ত</div>
+                            <div class="deed-desc">জুমু'আর দিনে এমন একটি মুহূর্ত রয়েছে যাতে বান্দা যে দোয়াই করে আল্লাহ তা কবুল করেন। আসরের শেষ সময়ে বেশি বেশি দোয়া করা। (আবু দাউদ: ১০৪৮)</div>
+                        </div>
+                    </label>
+                </div>
+
+                <footer class="modal-footer">
+                    <button type="button" id="close-jumuah-btn" class="btn btn-primary" style="width:100%;">ঠিক আছে</button>
+                </footer>
+            </div>
+        </dialog>
+<!-- Ramadan Dua Modal -->
+<dialog id="dua-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="dua-modal-title">
+    <div class="modal-backdrop" id="dua-modal-backdrop"></div>
+    <div class="modal-content dua-modal-content">
+        <header class="modal-header">
+            <h3 id="dua-modal-title">🤲 রমজানের দোয়া ও নিয়ত</h3>
+            <button id="close-dua-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </header>
+        <div class="dua-body">
+            <!-- 1. Authentic Sunnah Dua (After breaking fast) -->
+            <article class="dua-card">
+                <h4>🌅 ইফতারের সবচেয়ে বিশুদ্ধ সুন্নাহ দোয়া (ইফতারের পর)</h4>
+                <p class="arabic-text">ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الأَجْرُ إِنْ شَاءَ اللَّهُ</p>
+                <p class="pronunciation"><strong>উচ্চারণ:</strong> যাহাবায যমা'উ, ওয়াবতাল্লাতিল ‘উরূক্ব, ওয়া ছাবাতাল আজরু ইনশাআল্লাহ।</p>
+                <p class="meaning"><strong>অর্থ:</strong> পিপাসা দূর হলো, শিরা-উপশিরা সিক্ত হলো এবং ইনশাআল্লাহ প্রতিদান নির্ধারিত হলো। <span style="color:#059669; font-weight:600;">(আবু দাউদ: ২৩৫৭ • সহিহ)</span></p>
+            </article>
+
+            <!-- 2. Common Dua (At the time of breaking fast) -->
+            <article class="dua-card">
+                <h4>🤲 ইফতারের বহুল প্রচলিত দোয়া (শুরুর মুহূর্তে)</h4>
+                <p class="arabic-text">اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ</p>
+                <p class="pronunciation"><strong>উচ্চারণ:</strong> আল্লাহুম্মা লাকা ছুমতু ওয়া ‘আলা রিযক্বিকা আফতারতু।</p>
+                <p class="meaning"><strong>অর্থ:</strong> হে আল্লাহ! আমি আপনার সন্তুষ্টির জন্যই রোজা রেখেছি এবং আপনার দেওয়া রিযিক দ্বারাই ইফতার করছি। <span style="color:#64748B;">(আবু দাউদ: ২৩৫৮)</span></p>
+            </article>
+
+            <!-- 3. Fasting Intention (Niyyah) -->
+            <article class="dua-card">
+                <h4>🌌 রোজার নিয়ত</h4>
+                <p class="pronunciation"><strong>সুন্নাহসম্মত নিয়ম:</strong> নিয়তের মূল স্থান হলো अन्तর। মুখে নির্দিষ্ট বাক্য বলা জরুরি নয়; মনে মনে এই সংকল্প করাই যথেষ্ট যে— "আমি মহান আল্লাহর সন্তুষ্টির উদ্দেশ্যে আজকের রোজা রাখছি।"</p>
+            </article>
+        <footer class="modal-footer">
+            <button id="ok-dua-modal" class="btn btn-primary" style="width: 100%;">ঠিক আছে</button>
+        </footer>
+    </div>
+</dialog>
+
+    <!-- Quran Bookmarks Modal -->
+    <dialog id="quran-bookmarks-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="quran-bm-modal-title">
+        <div class="modal-backdrop" id="quran-bm-backdrop"></div>
+        <div class="modal-content quran-bm-modal-content">
+            <header class="modal-header">
+                <h3 id="quran-bm-modal-title">⭐ সংরক্ষিত আয়াত ও বুকমার্ক</h3>
+                <button type="button" id="close-quran-bm-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </header>
+            <div id="quran-bookmarks-list" class="quran-bm-list">
+                <!-- Bookmarks rendered dynamically -->
+            </div>
+            <footer class="modal-footer">
+                <button type="button" id="ok-quran-bm-modal" class="btn btn-primary" style="width: 100%;">ঠিক আছে</button>
+            </footer>
+        </div>
+    </dialog>
+
+    <!-- Hadith Bookmarks Modal (Glassmorphism) -->
+    <dialog id="hadith-bookmarks-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="hadith-bm-modal-title">
+        <div class="modal-backdrop" id="hadith-bm-backdrop"></div>
+        <div class="modal-content hadith-bm-modal-content">
+            <header class="modal-header">
+                <h3 id="hadith-bm-modal-title">⭐ বুকমার্ককৃত হাদীসসমূহ</h3>
+                <button type="button" id="close-hadith-bm-modal" class="icon-btn" aria-label="বন্ধ করুন">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </header>
+            <div id="hadith-bookmarks-list" class="hadith-bm-list">
+                <!-- Bookmarks rendered dynamically -->
+            </div>
+            <footer class="modal-footer">
+                <button type="button" id="ok-hadith-bm-modal" class="btn btn-primary" style="width: 100%;">ঠিক আছে</button>
+            </footer>
+        </div>
+    </dialog>
+<script src="/app.js"></script>
+</body>
+</html>
