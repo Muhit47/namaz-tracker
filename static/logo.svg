@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" width="240" height="56">
+  <defs>
+    <linearGradient id="logoSlateBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="logoStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Icon Mark -->
+  <g transform="translate(6, 6)">
+    <rect x="0" y="0" width="44" height="44" rx="12" fill="url(#logoSlateBg)" stroke="#334155" stroke-width="1.2"/>
+    <g transform="scale(0.6875)" fill="none" stroke="url(#logoStrokeGrad)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 43.5 V23.5 C17 20.5 19.5 19.5 21.5 21 L31.5 38 V21" />
+      <path d="M26.5 21 H49.5" />
+      <path d="M39 21 V38 C39 42 41.5 44 45 42.5" />
+      <rect x="28.5" y="10.5" width="4.5" height="4.5" rx="1" transform="rotate(45 30.75 12.75)" fill="#94A3B8" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- Typography: Namaz Tracker -->
+  <text x="62" y="29" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="19" font-weight="800" fill="#0F172A" letter-spacing="-0.02em">
+    Namaz <tspan fill="#334155" font-weight="600">Tracker</tspan>
+  </text>
+  <text x="63" y="44" font-family="'Noto Sans Bengali', sans-serif" font-size="11" font-weight="500" fill="#64748B" letter-spacing="0.04em">
+    দৈনন্দিন নামায ও কাযা ট্র্যাকিং
+  </text>
+</svg>

@@ -5,22 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#009688">
     <meta name="description" content="নামায ট্র্যাকার - আপনার দৈনন্দین নামায ও কাযা ম্যানেজমেন্ট">
-    <title>নামায ট্র্যাকার • Namaz Tracker</title>
+    <title>Namaz Tracker • নামায ট্র্যাকার</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=2.6">
+    <link rel="stylesheet" href="/style.css?v=2.9">
 </head>
 <body>
     <div class="app-shell">
         <!-- Header / Glass Navbar -->
         <header class="glass-navbar" role="banner">
             <div class="nav-left">
-                <div class="app-logo" aria-label="নামায ট্র্যাকার">
-                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                <div class="app-logo" aria-label="Namaz Tracker">
+                    <svg class="logo-icon nt-logo-badge" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="navNtBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1E293B"/>
+                                <stop offset="100%" stop-color="#0F172A"/>
+                            </linearGradient>
+                            <linearGradient id="navNtStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFFFFF"/>
+                                <stop offset="100%" stop-color="#F1F5F9"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navNtBg)" stroke="#334155" stroke-width="1.5"/>
+                        <g fill="none" stroke="url(#navNtStroke)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 43.5 V23.5 C17 20.5 19.5 19.5 21.5 21 L31.5 38 V21" />
+                            <path d="M26.5 21 H49.5" />
+                            <path d="M39 21 V38 C39 42 41.5 44 45 42.5" />
+                        </g>
+                        <rect x="28.5" y="10.5" width="4.5" height="4.5" rx="1" transform="rotate(45 30.75 12.75)" fill="#94A3B8"/>
                     </svg>
-                    <span class="app-title">নামায ট্র্যাকার</span>
+                    <span class="app-title">Namaz Tracker</span>
                     <span class="live-indicator" aria-live="polite"></span>
                 </div>
             </div>
@@ -30,7 +50,7 @@
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                         <circle cx="12" cy="10" r="3"/>
                     </svg>
-                    <span id="city-indicator">📍 ঢাকা (Dhaka)</span>
+                    <span id="city-indicator">📍 ঢাকা</span>
                     <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -46,6 +66,9 @@
             </div>
             <div class="nav-right">
                 <div class="backup-action-group" style="display: flex; align-items: center; gap: 6px; margin-right: 8px;">
+                    <button type="button" id="lang-switcher-btn" class="nav-action-btn lang-toggle-pill" onclick="toggleAppLanguage()" title="Switch Language" aria-label="ভাষা পরিবর্তন">
+                        🌐 <span class="lang-text">English</span>
+                    </button>
                     <button type="button" id="export-backup-btn" class="nav-action-btn" title="ডেটা ব্যাকআপ ডাউনলোড করুন" aria-label="ব্যাকআপ ডাউনলোড">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span class="btn-text-responsive">ব্যাকআপ</span>
@@ -128,20 +151,20 @@
                     <line x1="8" y1="2" x2="8" y2="6"/>
                     <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                <span>আজকের নামায</span>
+                <span data-i18n="tab_today">আজকের নামায</span>
             </button>
             <button id="tab-qaza" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-qaza" data-tab="qaza">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M9 11l3 3L22 4"/>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11"/>
                 </svg>
-                <span>আমলনামা ও ট্র্যাকার</span>
+                <span data-i18n="tab_qaza">আমলনামা ও ট্র্যাকার</span>
             </button>
             <button id="tab-ramadan" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-ramadan" data-tab="ramadan">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
-                <span>সেহরি ও ইফতার</span>
+                <span data-i18n="tab_ramadan">সেহরি ও ইফতার</span>
             </button>
             <button id="tab-analytics" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-analytics" data-tab="analytics">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -149,18 +172,18 @@
                     <line x1="12" y1="20" x2="12" y2="4"/>
                     <line x1="6" y1="20" x2="6" y2="14"/>
                 </svg>
-                <span>ক্যালেন্ডার ও স্ট্রিক</span>
+                <span data-i18n="tab_analytics">ক্যালেন্ডার ও স্ট্রিক</span>
             </button>
             <button id="tab-guide" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-guide" data-tab="guide">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                     <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                 </svg>
-                <span>নামাজের নিয়ম</span>
+                <span data-i18n="tab_guide">নামাজের নিয়ম</span>
             </button>
             <button class="tab-btn" id="tab-wudu" data-tab="wudu" role="tab" aria-selected="false" aria-controls="panel-wudu">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                <span>ওজু ও পবিত্রতা</span>
+                <span data-i18n="tab_wudu">ওজু ও পবিত্রতা</span>
             </button>
             <button class="tab-btn" id="tab-quran" data-tab="quran" role="tab" aria-selected="false" aria-controls="panel-quran">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -169,13 +192,13 @@
                     <path d="M8 7h8"/>
                     <path d="M8 11h6"/>
                 </svg>
-                <span>আল কুরআন</span>
+                <span data-i18n="tab_quran">আল কুরআন</span>
             </button>
             <button class="tab-btn" id="tab-hadith" data-tab="hadith" role="tab" aria-selected="false" aria-controls="panel-hadith">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-                <span>হাদীস শরীফ</span>
+                <span data-i18n="tab_hadith">হাদীস শরীফ</span>
             </button>
         </nav>
 
@@ -757,8 +780,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h2 class="hadith-title">সহীহ হাদীস সংকলন</h2>
-                                <p class="hadith-subtitle">বিষয়ভিত্তিক সহীহ হাদীস • নির্ভুল আরবি মতন • সহজ সরল বাংলা অনুবাদ ও তথ্যসূত্র</p>
+                                <h2 class="hadith-title">সহীহ হাদীস লাইব্রেরি</h2>
+                                <p class="hadith-subtitle">পূর্ণাঙ্গ ৭টি প্রধান হাদীস গ্রন্থ ও বিষয়ভিত্তিক সহীহ হাদীস সংকলন</p>
                             </div>
                         </div>
                         <button type="button" id="hadith-open-bookmarks-btn" class="hadith-bookmark-pill">
@@ -767,8 +790,27 @@
                         </button>
                     </div>
 
-                    <!-- Search & Controls -->
-                    <div class="hadith-controls">
+                    <!-- Mode Switcher Tabs -->
+                    <div class="hadith-mode-switcher">
+                        <button type="button" id="hadith-mode-books" class="hadith-mode-tab active" data-mode="books">
+                            📚 পূর্ণাঙ্গ হাদিস গ্রন্থ (৭টি কিতাব)
+                        </button>
+                        <button type="button" id="hadith-mode-topics" class="hadith-mode-tab" data-mode="topics">
+                            ✨ বিষয়ভিত্তিক নির্বাচিত হাদিস
+                        </button>
+                    </div>
+
+                    <!-- Last Read Quick Resume Banner (Books Mode) -->
+                    <div id="hadith-last-read-card" class="quran-last-read-banner" style="display: none; margin-top: 14px;">
+                        <div class="last-read-info">
+                            <span class="last-read-tag">সর্বশেষ পঠিত</span>
+                            <span id="hadith-last-read-title" class="last-read-text">সহীহ বুখারী • অধ্যায় ১</span>
+                        </div>
+                        <button type="button" id="hadith-resume-btn" class="btn btn-primary btn-sm">পড়ুন →</button>
+                    </div>
+
+                    <!-- Search & Controls for Topics View -->
+                    <div class="hadith-controls" id="hadith-topics-controls" style="display: none;">
                         <div class="hadith-search-wrap">
                             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -795,13 +837,55 @@
                     </div>
                 </div>
 
-                <!-- Hadith Count / Status Info -->
-                <div class="hadith-status-bar">
-                    <span id="hadith-results-count" class="hadith-results-count">হাদীস লোড হচ্ছে...</span>
+                <!-- 1. FULL BOOKS VIEW -->
+                <div id="hadith-full-books-container">
+                    <!-- 1a. Books Grid -->
+                    <div id="hadith-books-grid" class="hadith-books-grid"></div>
+
+                    <!-- 1b. Chapters View (Hidden by default) -->
+                    <div id="hadith-chapters-container" style="display: none; margin-top: 14px;">
+                        <div class="quran-reader-nav">
+                            <button type="button" id="hadith-back-to-books-btn" class="quran-back-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                <span>গ্রন্থের তালিকা</span>
+                            </button>
+                            <div class="quran-reader-title-box">
+                                <h3 id="hadith-chapters-book-title">সহীহ বুখারী</h3>
+                                <span id="hadith-chapters-book-meta">অধ্যায়সমূহের তালিকা</span>
+                            </div>
+                        </div>
+                        <div id="hadith-chapters-grid" class="hadith-chapters-grid"></div>
+                    </div>
+
+                    <!-- 1c. Chapter Hadith Reader View (Hidden by default) -->
+                    <div id="hadith-reader-container" class="quran-reader-container" style="display: none;">
+                        <div class="quran-reader-nav">
+                            <button type="button" id="hadith-back-to-chapters-btn" class="quran-back-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                <span>অধ্যায়ের তালিকা</span>
+                            </button>
+                            <div class="quran-reader-title-box">
+                                <h3 id="hadith-reader-chapter-title">অধ্যায় ১: ওহী বা প্রত্যাদেশ</h3>
+                                <span id="hadith-reader-book-meta">সহীহ বুখারী • ৭টি হাদীস</span>
+                            </div>
+                            <div class="quran-reader-actions">
+                                <button type="button" id="hadith-reader-prev-chapter" class="nav-chevron-btn" title="পূর্ববর্তী অধ্যায়">‹</button>
+                                <button type="button" id="hadith-reader-next-chapter" class="nav-chevron-btn" title="পরবর্তী অধ্যায়">›</button>
+                            </div>
+                        </div>
+
+                        <!-- Hadith Items List -->
+                        <div id="hadith-reader-items" class="quran-ayahs-list"></div>
+                    </div>
                 </div>
 
-                <!-- Hadiths Cards List Container -->
-                <div id="hadith-cards-container" class="hadith-cards-container"></div>
+                <!-- 2. TOPICS VIEW (Existing 55 Selected Hadiths) -->
+                <div id="hadith-topics-container" style="display: none;">
+                    <div class="hadith-status-bar">
+                        <span id="hadith-results-count" class="hadith-results-count">হাদীস লোড হচ্ছে...</span>
+                    </div>
+                    <div id="hadith-cards-container" class="hadith-cards-container"></div>
+                </div>
             </section>
         </main>
 
@@ -1173,8 +1257,9 @@
             <!-- 3. Fasting Intention (Niyyah) -->
             <article class="dua-card">
                 <h4>🌌 রোজার নিয়ত</h4>
-                <p class="pronunciation"><strong>সুন্নাহসম্মত নিয়ম:</strong> নিয়তের মূল স্থান হলো अन्तর। মুখে নির্দিষ্ট বাক্য বলা জরুরি নয়; মনে মনে এই সংকল্প করাই যথেষ্ট যে— "আমি মহান আল্লাহর সন্তুষ্টির উদ্দেশ্যে আজকের রোজা রাখছি।"</p>
+                <p class="pronunciation"><strong>সুন্নাহসম্মত নিয়ম:</strong> নিয়তের মূল স্থান হলো অন্তর। মুখে নির্দিষ্ট বাক্য বলা জরুরি নয়; মনে মনে এই সংকল্প করাই যথেষ্ট যে— "আমি মহান আল্লাহর সন্তুষ্টির উদ্দেশ্যে আজকের রোজা রাখছি।"</p>
             </article>
+        </div>
         <footer class="modal-footer">
             <button id="ok-dua-modal" class="btn btn-primary" style="width: 100%;">ঠিক আছে</button>
         </footer>
@@ -1218,6 +1303,9 @@
             </footer>
         </div>
     </dialog>
-<script src="/app.js"></script>
+    </div> <!-- .app-shell -->
+<script src="/i18n.js?v=3.0"></script>
+<script src="/guide_content.js?v=3.0"></script>
+<script src="/app.js?v=3.0"></script>
 </body>
 </html>

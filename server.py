@@ -1,3 +1,11 @@
+import sys
+import os
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 from flask import Flask, request, jsonify, send_from_directory
 from db import (
     init_db,
@@ -23,8 +31,14 @@ from db import (
     get_all_hadiths,
     get_daily_hadith,
     get_hadith_bookmarks,
-    toggle_hadith_bookmark
+    toggle_hadith_bookmark,
+    get_full_hadith_books,
+    get_hadith_chapters,
+    get_hadith_chapter_items,
+    get_hadith_last_read,
+    set_hadith_last_read
 )
+from hadith_service import fetch_and_cache_chapters, fetch_and_cache_chapter_items
 import os
 
 app = Flask(__name__, static_folder="static")
@@ -274,6 +288,51 @@ def hadith_bookmarks_route():
         return jsonify(get_hadith_bookmarks())
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/hadith/full-books")
+def get_full_hadith_books_route():
+    try:
+        return jsonify(get_full_hadith_books())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/hadith/book/<book_id>/chapters")
+def get_hadith_chapters_route(book_id):
+    try:
+        chapters = get_hadith_chapters(book_id)
+        if not chapters:
+            chapters = fetch_and_cache_chapters(book_id)
+        return jsonify(chapters)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/hadith/book/<book_id>/chapter/<int:chapter_no>")
+def get_hadith_chapter_route(book_id, chapter_no):
+    try:
+        items = get_hadith_chapter_items(book_id, chapter_no)
+        if not items or (items and (not items[0].get("text_en") or not items[0].get("translit_en"))):
+            items = fetch_and_cache_chapter_items(book_id, chapter_no)
+        return jsonify({"book_id": book_id, "chapter_no": chapter_no, "hadiths": items})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/hadith/last-read", methods=["GET", "POST"])
+def hadith_last_read_route():
+    try:
+        if request.method == "POST":
+            req = request.get_json() or {}
+            book_id = req.get("book_id", "")
+            chapter_no = int(req.get("chapter_no", 1))
+            hadith_no = int(req.get("hadith_no", 1))
+            set_hadith_last_read(book_id, chapter_no, hadith_no)
+            return jsonify({"success": True})
+        return jsonify(get_hadith_last_read() or {})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/backup/export")
 def export_backup():

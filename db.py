@@ -124,6 +124,7 @@ def init_db() -> None:
                 chapter_bn TEXT NOT NULL,
                 narrator_bn TEXT NOT NULL,
                 text_ar TEXT NOT NULL,
+                translit_bn TEXT DEFAULT '',
                 text_bn TEXT NOT NULL,
                 grade_bn TEXT NOT NULL,
                 reference_bn TEXT NOT NULL,
@@ -138,6 +139,45 @@ def init_db() -> None:
                 hadith_id INTEGER NOT NULL UNIQUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(hadith_id) REFERENCES hadiths(id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hadith_chapters (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_id TEXT NOT NULL,
+                chapter_no INTEGER NOT NULL,
+                name_bn TEXT NOT NULL,
+                name_ar TEXT DEFAULT '',
+                total_hadith INTEGER DEFAULT 0,
+                start_hadith INTEGER DEFAULT 0,
+                end_hadith INTEGER DEFAULT 0,
+                UNIQUE(book_id, chapter_no)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hadith_full_collection (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_id TEXT NOT NULL,
+                chapter_no INTEGER NOT NULL,
+                hadith_no INTEGER NOT NULL,
+                arabic_no INTEGER,
+                text_ar TEXT DEFAULT '',
+                translit_bn TEXT DEFAULT '',
+                text_bn TEXT NOT NULL,
+                grade_bn TEXT DEFAULT '',
+                UNIQUE(book_id, hadith_no)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS hadith_last_read (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                book_id TEXT NOT NULL,
+                chapter_no INTEGER NOT NULL,
+                hadith_no INTEGER NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
@@ -423,7 +463,7 @@ def get_quran_bookmarks() -> List[Dict]:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT b.id, b.surah_no, b.ayah_no, b.created_at,
-                   s.name_bn, s.name_ar, a.translit_bn, a.trans_bn
+                   s.name_bn, s.name_ar, s.name_en, a.translit_bn, a.translit_en, a.trans_bn, a.trans_en
             FROM quran_bookmarks b
             JOIN quran_surahs s ON b.surah_no = s.surah_no
             LEFT JOIN quran_ayahs a ON b.surah_no = a.surah_no AND b.ayah_no = a.ayah_no
@@ -452,7 +492,7 @@ def get_quran_last_read() -> Optional[Dict]:
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT lr.surah_no, lr.ayah_no, lr.updated_at, s.name_bn, s.name_ar, s.total_ayah
+            SELECT lr.surah_no, lr.ayah_no, lr.updated_at, s.name_bn, s.name_en, s.name_ar, s.total_ayah
             FROM quran_last_read lr
             JOIN quran_surahs s ON lr.surah_no = s.surah_no
             WHERE lr.id = 1
@@ -523,8 +563,8 @@ def get_all_hadiths(category: Optional[str] = None, book: Optional[str] = None, 
             params.append(book)
         if search and search.strip():
             term = f"%{search.strip()}%"
-            query += " AND (h.text_bn LIKE ? OR h.text_ar LIKE ? OR h.chapter_bn LIKE ? OR h.narrator_bn LIKE ? OR h.reference_bn LIKE ?)"
-            params.extend([term, term, term, term, term])
+            query += " AND (h.text_bn LIKE ? OR h.text_ar LIKE ? OR h.text_en LIKE ? OR h.chapter_bn LIKE ? OR h.chapter_en LIKE ? OR h.narrator_bn LIKE ? OR h.narrator_en LIKE ? OR h.reference_bn LIKE ? OR h.reference_en LIKE ?)"
+            params.extend([term, term, term, term, term, term, term, term, term])
 
         query += " ORDER BY h.id ASC"
         cursor.execute(query, params)
@@ -562,6 +602,129 @@ def get_hadith_bookmarks() -> List[Dict]:
             ORDER BY b.created_at DESC
         """)
         return [dict(r) for r in cursor.fetchall()]
+
+
+def get_full_hadith_books() -> List[Dict]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT b.id, b.name_bn, b.name_ar, b.name_en,
+                   (SELECT COUNT(*) FROM hadith_chapters c WHERE c.book_id = b.id) AS total_chapters,
+                   (SELECT COUNT(*) FROM hadith_full_collection f WHERE f.book_id = b.id) AS cached_hadiths
+            FROM hadith_books b
+            ORDER BY CASE b.id
+                WHEN 'bukhari' THEN 1
+                WHEN 'muslim' THEN 2
+                WHEN 'tirmidhi' THEN 3
+                WHEN 'abu_dawood' THEN 4
+                WHEN 'abudawud' THEN 4
+                WHEN 'nasai' THEN 5
+                WHEN 'ibn_majah' THEN 6
+                WHEN 'ibnmajah' THEN 6
+                WHEN 'malik' THEN 7
+                ELSE 8
+            END ASC
+        """)
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def get_hadith_chapters(book_id: str) -> List[Dict]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM hadith_chapters
+            WHERE book_id = ?
+            ORDER BY chapter_no ASC
+        """, (book_id,))
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def save_hadith_chapters(book_id: str, chapters: List[Dict]) -> None:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        for c in chapters:
+            cursor.execute("""
+                INSERT OR REPLACE INTO hadith_chapters (
+                    book_id, chapter_no, name_bn, name_ar, name_en, total_hadith, start_hadith, end_hadith
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                book_id,
+                c.get("chapter_no", 0),
+                c.get("name_bn", ""),
+                c.get("name_ar", ""),
+                c.get("name_en", ""),
+                c.get("total_hadith", 0),
+                c.get("start_hadith", 0),
+                c.get("end_hadith", 0)
+            ))
+        conn.commit()
+
+
+def get_hadith_chapter_items(book_id: str, chapter_no: int) -> List[Dict]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM hadith_full_collection
+            WHERE book_id = ? AND chapter_no = ?
+            ORDER BY hadith_no ASC
+        """, (book_id, chapter_no))
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def save_hadith_chapter_items(book_id: str, chapter_no: int, items: List[Dict]) -> None:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        for h in items:
+            cursor.execute("""
+                INSERT OR REPLACE INTO hadith_full_collection (
+                    book_id, chapter_no, hadith_no, arabic_no, text_ar, translit_bn, translit_en, text_bn, text_en, grade_bn
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                book_id,
+                chapter_no,
+                h.get("hadith_no", 0),
+                h.get("arabic_no"),
+                h.get("text_ar", ""),
+                h.get("translit_bn", ""),
+                h.get("translit_en", ""),
+                h.get("text_bn", ""),
+                h.get("text_en", ""),
+                h.get("grade_bn", "")
+            ))
+        conn.commit()
+
+
+def get_hadith_last_read() -> Optional[Dict]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT lr.book_id, lr.chapter_no, lr.hadith_no, lr.updated_at,
+                   b.name_bn AS book_name_bn,
+                   b.name_en AS book_name_en,
+                   c.name_bn AS chapter_name_bn,
+                   c.name_en AS chapter_name_en
+            FROM hadith_last_read lr
+            LEFT JOIN hadith_books b ON lr.book_id = b.id
+            LEFT JOIN hadith_chapters c ON (lr.book_id = c.book_id AND lr.chapter_no = c.chapter_no)
+            WHERE lr.id = 1
+        """)
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def set_hadith_last_read(book_id: str, chapter_no: int, hadith_no: int) -> bool:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO hadith_last_read (id, book_id, chapter_no, hadith_no, updated_at)
+            VALUES (1, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(id) DO UPDATE SET book_id = excluded.book_id,
+                                          chapter_no = excluded.chapter_no,
+                                          hadith_no = excluded.hadith_no,
+                                          updated_at = CURRENT_TIMESTAMP
+        """, (book_id, chapter_no, hadith_no))
+        conn.commit()
+        return True
 
 
 def toggle_hadith_bookmark(hadith_id: int) -> Dict:
