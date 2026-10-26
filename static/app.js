@@ -78,6 +78,9 @@ function syncDateDisplays() {
 }
 
 
+const savedTheme = localStorage.getItem('theme') || 'light';
+if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+
 function updateCityIndicator() {
     const isEn = typeof getAppLanguage === "function" ? (getAppLanguage() === "en") : false;
     const cityEl = document.getElementById("city-indicator");
@@ -121,19 +124,27 @@ async function init() {
     const nextMonthBtn = document.getElementById("next-month");
     if (prevMonthBtn) {
         prevMonthBtn.onclick = () => {
-            let [y, m] = currentDate.split("-").map(Number);
-            m--;
-            if (m < 1) { m = 12; y--; }
-            currentDate = `${y}-${String(m).padStart(2, '0')}-01`;
+            const [cy, cm, cd] = currentDate.split('-').map(Number);
+            let newMonth = cm - 1;
+            let newYear = cy;
+            if (newMonth < 1) { newMonth = 12; newYear--; }
+            const lastDay = new Date(newYear, newMonth, 0).getDate();
+            const newDay = Math.min(cd, lastDay);
+            currentDate = `${newYear}-${String(newMonth).padStart(2, '0')}-${String(newDay).padStart(2, '0')}`;
+            syncDateDisplays();
             loadCalendar();
         };
     }
     if (nextMonthBtn) {
         nextMonthBtn.onclick = () => {
-            let [y, m] = currentDate.split("-").map(Number);
-            m++;
-            if (m > 12) { m = 1; y++; }
-            currentDate = `${y}-${String(m).padStart(2, '0')}-01`;
+            const [cy, cm, cd] = currentDate.split('-').map(Number);
+            let newMonth = cm + 1;
+            let newYear = cy;
+            if (newMonth > 12) { newMonth = 1; newYear++; }
+            const lastDay = new Date(newYear, newMonth, 0).getDate();
+            const newDay = Math.min(cd, lastDay);
+            currentDate = `${newYear}-${String(newMonth).padStart(2, '0')}-${String(newDay).padStart(2, '0')}`;
+            syncDateDisplays();
             loadCalendar();
         };
     }
@@ -164,6 +175,16 @@ async function init() {
         duaModalBackdrop.onclick = () => {
             duaModal.close();
         };
+    }
+
+    const darkModeBtn = document.getElementById('dark-mode-btn');
+    if (darkModeBtn) {
+        darkModeBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            darkModeBtn.setAttribute('aria-label',
+                isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        });
     }
     
     // Wire up Notes modal
@@ -212,6 +233,7 @@ async function init() {
                 roza_start: localStorage.getItem('roza_start') || '',
                 roza_end: localStorage.getItem('roza_end') || '',
                 hijri_offset: localStorage.getItem('hijri_offset') || '0',
+                theme: localStorage.getItem('theme') || 'light',
             };
             data.local_settings = localData;
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -459,8 +481,38 @@ async function fetchPrayerTimes() {
 }
 
 // Renderers
+function getActivePrayerName(times) {
+    if (!times || typeof times !== "object") return "";
+    const clean = (t) => {
+        if (!t || typeof t !== "string") return "";
+        const parts = t.trim().split(" ")[0].split(":");
+        if (parts.length < 2) return "";
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`.slice(0, 5);
+    };
+
+    const fajr = clean(times.Fajr);
+    const dhuhr = clean(times.Dhuhr);
+    const asr = clean(times.Asr);
+    const maghrib = clean(times.Maghrib);
+    const isha = clean(times.Isha);
+
+    if (!fajr || !dhuhr || !asr || !maghrib || !isha) return "";
+
+    const d = new Date();
+    const now = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+    if (now >= fajr && now < dhuhr) return "Fajr";
+    if (now >= dhuhr && now < asr) return "Dhuhr";
+    if (now >= asr && now < maghrib) return "Asr";
+    if (now >= maghrib && now < isha) return "Maghrib";
+    if (now >= isha || now < fajr) return "Isha";
+
+    return "";
+}
+
 async function renderPrayers() {
-    const prayers = await api(`/prayers/${currentDate}`);
+    const activeName = getActivePrayerName(prayerTimings);
+    const prayers = await api(`/prayers/${currentDate}?active=${encodeURIComponent(activeName)}`);
     prayerGrid.innerHTML = "";
     
     const isEn = typeof getAppLanguage === "function" ? (getAppLanguage() === "en") : false;
@@ -572,6 +624,15 @@ function updateProgress(prayers) {
 }
 
 // Ramadan Card Functions
+const RAMADAN_DATES = {
+    1446: { start: "2026-02-28", end: "2026-03-29" },
+    1447: { start: "2027-02-18", end: "2027-03-19" },
+    1448: { start: "2028-02-07", end: "2028-03-07" },
+    1449: { start: "2029-01-27", end: "2029-02-24" },
+    1450: { start: "2030-01-16", end: "2030-02-14" },
+    1451: { start: "2031-01-06", end: "2031-02-04" },
+};
+
 function updateRamadanCard() {
     const isEn = typeof getAppLanguage === "function" ? (getAppLanguage() === "en") : false;
     // Update Sehri and Iftar times (always visible for daily Tahajjud/Nafal fasting)
@@ -604,9 +665,27 @@ function updateRamadanCard() {
     if (hijriDisplay) {
         hijriDisplay.textContent = hijriDate;
     }
+
+    const curHijri = typeof getHijriParts === "function" ? getHijriParts(new Date(currentDate + "T12:00:00")) : null;
+    const hijriYear = curHijri ? curHijri.year : 1448;
+    const ramadanInfo = RAMADAN_DATES[hijriYear];
+    if (!ramadanInfo) {
+        // Show fallback UI instead of crashing
+        const container = document.getElementById("ramadan-info-container")
+                       || document.getElementById("sehri-iftar-content")
+                       || document.getElementById("panel-ramadan");
+        if (container) {
+            container.innerHTML = `<p style="text-align:center;padding:2rem;color:var(--text-muted)">
+                ${isEn
+                  ? "Ramadan date data not available for this year. Please update the app."
+                  : "এই বছরের রমজানের তারিখ ডেটা পাওয়া যাচ্ছে না। অ্যাপ আপডেট করুন।"}
+            </p>`;
+        }
+        return;
+    }
     
     // Detect if current month is Ramadan
-    const isRamadan = hijriDate && (hijriDate.includes("রমজান") || hijriDate.includes("Ramadan"));
+    const isRamadan = (hijriDate && (hijriDate.includes("রমজান") || hijriDate.includes("Ramadan"))) || (ramadanInfo && currentDate >= ramadanInfo.start && currentDate <= ramadanInfo.end);
     
     const ramadanTitle = document.getElementById('ramadan-title');
     const ramadanCountdownText = document.getElementById('ramadan-countdown-text');
@@ -1237,12 +1316,12 @@ async function loadAmalnamah() {
 
     const statJamaah = document.getElementById("stat-jamaah");
     if (statJamaah) {
-        statJamaah.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${toBN(jamaahPct)}%` : `${toBN(jamaahPct)}%`);
+        statJamaah.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${jamaahPct}%` : `${toBN(jamaahPct)}%`);
     }
 
     const statOntime = document.getElementById("stat-ontime");
     if (statOntime) {
-        statOntime.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${toBN(ontimePct)}%` : `${toBN(ontimePct)}%`);
+        statOntime.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${ontimePct}%` : `${toBN(ontimePct)}%`);
     }
 
     // Populate #amal-waqt-grid with 5 Waqt Cards
@@ -2144,8 +2223,10 @@ function setupHadithEventListeners() {
     const prevChapterBtn = document.getElementById("hadith-reader-prev-chapter");
     if (prevChapterBtn) {
         prevChapterBtn.onclick = () => {
-            if (currentHadithChapterNo > 1) {
-                openHadithChapter(currentHadithBookId, currentHadithChapterNo - 1);
+            const idx = currentHadithChapters.findIndex(c => c.chapter_no === currentHadithChapterNo);
+            if (idx !== -1 && idx - 1 >= 0) {
+                const prevChapter = currentHadithChapters[idx - 1];
+                openHadithChapter(currentHadithBookId, prevChapter.chapter_no, currentHadithBookName, prevChapter.name_bn);
             }
         };
     }
@@ -2153,8 +2234,10 @@ function setupHadithEventListeners() {
     const nextChapterBtn = document.getElementById("hadith-reader-next-chapter");
     if (nextChapterBtn) {
         nextChapterBtn.onclick = () => {
-            if (currentHadithChapterNo < currentHadithChapters.length) {
-                openHadithChapter(currentHadithBookId, currentHadithChapterNo + 1);
+            const idx = currentHadithChapters.findIndex(c => c.chapter_no === currentHadithChapterNo);
+            if (idx !== -1 && idx + 1 < currentHadithChapters.length) {
+                const nextChapter = currentHadithChapters[idx + 1];
+                openHadithChapter(currentHadithBookId, nextChapter.chapter_no, currentHadithBookName, nextChapter.name_bn);
             }
         };
     }

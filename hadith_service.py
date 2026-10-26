@@ -1,8 +1,23 @@
 import json
+import time
 import urllib.request
 from typing import Dict, List, Optional
 import db
 from transliteration import transliterate_arabic_to_bangla, transliterate_arabic_to_english
+
+
+def _fetch_json(url: str, retries: int = 3, timeout: int = 15) -> dict:
+    last_err = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            res = urllib.request.urlopen(req, timeout=timeout)
+            return json.loads(res.read().decode("utf-8"))
+        except Exception as e:
+            last_err = e
+            if attempt < retries - 1:
+                time.sleep(1.5 ** attempt)  # 1s, 1.5s backoff
+    raise ConnectionError(f"Failed after {retries} attempts: {last_err}")
 
 BOOK_CONFIG = {
     "bukhari": {
@@ -169,8 +184,18 @@ def fetch_and_cache_chapters(book_id: str) -> List[Dict]:
     ben_edition = cfg["ben"]
     url = f"https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/{ben_edition}.min.json"
     
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    stream = urllib.request.urlopen(req, timeout=15)
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            stream = urllib.request.urlopen(req, timeout=15)
+            break
+        except Exception as e:
+            if attempt == 2:
+                print(f"Chapter fetch failed: {e}")
+                return []
+            import time
+            time.sleep(1.5 ** attempt)
+
     buffer = b""
     sections = {}
     section_details = {}
@@ -234,39 +259,33 @@ def fetch_and_cache_chapter_items(book_id: str, chapter_no: int) -> List[Dict]:
     
     # 1. Fetch Bengali Hadiths
     try:
-        req = urllib.request.Request(ben_url, headers={"User-Agent": "Mozilla/5.0"})
-        res = urllib.request.urlopen(req, timeout=15)
-        ben_data = json.loads(res.read().decode("utf-8"))
+        ben_data = _fetch_json(ben_url)
         ben_hadiths = ben_data.get("hadiths", [])
     except Exception as e:
-        print(f"Error fetching Bengali hadiths: {e}")
+        print(f"Bengali fetch failed: {e}")
         ben_hadiths = []
 
     # 2. Fetch Arabic Hadiths
     ara_map = {}
     try:
-        req = urllib.request.Request(ara_url, headers={"User-Agent": "Mozilla/5.0"})
-        res = urllib.request.urlopen(req, timeout=15)
-        ara_data = json.loads(res.read().decode("utf-8"))
+        ara_data = _fetch_json(ara_url)
         for h in ara_data.get("hadiths", []):
             h_no = h.get("hadithnumber")
             if h_no is not None:
                 ara_map[h_no] = h.get("text", "")
     except Exception as e:
-        print(f"Error fetching Arabic hadiths: {e}")
+        print(f"Arabic fetch failed: {e}")
 
     # 3. Fetch English Hadiths
     eng_map = {}
     try:
-        req = urllib.request.Request(eng_url, headers={"User-Agent": "Mozilla/5.0"})
-        res = urllib.request.urlopen(req, timeout=15)
-        eng_data = json.loads(res.read().decode("utf-8"))
+        eng_data = _fetch_json(eng_url)
         for h in eng_data.get("hadiths", []):
             h_no = h.get("hadithnumber")
             if h_no is not None:
                 eng_map[h_no] = h.get("text", "")
     except Exception as e:
-        print(f"Error fetching English hadiths: {e}")
+        print(f"English fetch failed: {e}")
 
     items_to_save = []
     for h in ben_hadiths:

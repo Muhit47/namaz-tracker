@@ -90,11 +90,18 @@ def get_approximate_active_waqt(time_str: str) -> str:
 def get_prayers(date_str):
     try:
         prayers = get_prayers_for_date(date_str)
-        is_today = (date_str == date.today().isoformat())
-        active_waqt = get_approximate_active_waqt(datetime.now().strftime("%H:%M")) if is_today else None
+        active_waqt = request.args.get('active', '').strip()
+        if not active_waqt:
+            # fallback to approximate if frontend didn't send it
+            active_waqt = get_approximate_active_waqt(
+                datetime.now().strftime("%H:%M")
+            ) if date_str == date.today().isoformat() else ''
 
+        is_today = (date_str == date.today().isoformat())
         for p in prayers:
-            p["is_active"] = bool(is_today and p.get("prayer_name") == active_waqt)
+            p["is_active"] = bool(
+                is_today and p.get("prayer_name") == active_waqt
+            )
 
         return jsonify(prayers)
     except Exception as e:
@@ -371,9 +378,16 @@ def export_backup():
 def import_backup():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        if not isinstance(data, dict):
+            return jsonify({"error": "Invalid backup format"}), 400
         data.pop('local_settings', None)
+        VALID_KEYS = {"prayers_log", "qaza_records", "settings",
+                      "quran_bookmarks", "quran_last_read",
+                      "hadith_bookmarks", "hadith_last_read"}
+        if not any(k in data for k in VALID_KEYS):
+            return jsonify({"error": "No recognizable backup data found"}), 400
+        if "prayers_log" in data and not isinstance(data["prayers_log"], list):
+            return jsonify({"error": "Invalid prayers_log format"}), 400
         if import_user_data(data):
             return jsonify({"success": True})
         else:
