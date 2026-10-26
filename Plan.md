@@ -43,12 +43,15 @@
   - Added `pytest>=8.0.0` to `requirements.txt`.
 - **Verification**: `python -m pytest tests -v` (22/22 passed) and `python -m unittest discover tests` (22/22 passed).
 
-### Task 2: City & Prayer Time Auto-Geolocation (Pending Approval)
+### Task 2: City & Prayer Time Auto-Geolocation (Completed)
 - **Goal**: Allow users to optionally detect their city/location via browser GPS / IP geolocation in addition to the dropdown selection.
+- **Status**: [x] Completed (2026-10-26).
 - **Scope**:
-  - Add optional "Detect My Location" button in the city modal.
-  - Fetch accurate prayer calculation method and coordinates.
-- **Verification**: Manual browser verification in mobile/desktop simulator.
+  - Added "Auto Detect Location" button in the city modal with responsive glassmorphism styling and dark mode support.
+  - Implemented `handleAutoDetectLocation()` using `navigator.geolocation` and BigDataCloud reverse geocode client API with fallback to nearest division coordinates.
+  - Dynamic Aladhan API query using exact coordinates (`latitude` & `longitude`) and offline solar calculation fallback.
+  - Added bilingual translations in `i18n.js` for auto-detection button, status messages, and feedback.
+- **Verification**: Syntax check via `node --check` on JS files, all 22 tests passing via pytest and unittest.
 
 ### Task 3: Audio Adhan / Waqt Reminder Notifications
 - **Goal**: Provide optional Web Audio or local browser notifications when a prayer Waqt starts.

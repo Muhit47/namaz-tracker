@@ -439,7 +439,16 @@ async function fetchPrayerTimes() {
         let url;
         const [y, m, d] = currentDate.split("-");
         const dateParam = `${d}-${m}-${y}`;
-        if (bdCities.has(userCity.toLowerCase())) {
+
+        let userCoords = null;
+        try {
+            const rawCoords = localStorage.getItem("user_coords");
+            if (rawCoords) userCoords = JSON.parse(rawCoords);
+        } catch (err) {}
+
+        if (userCoords && userCoords.lat && userCoords.lng) {
+            url = `https://api.aladhan.com/v1/timings/${dateParam}?latitude=${userCoords.lat}&longitude=${userCoords.lng}&method=1&school=1`;
+        } else if (bdCities.has(userCity.toLowerCase())) {
             url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(userCity)}&country=Bangladesh&method=1&school=1&date=${dateParam}`;
         } else {
             url = `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(userCity)}&method=1&school=1&date=${dateParam}`;
@@ -473,7 +482,14 @@ async function fetchPrayerTimes() {
     } catch (e) {
         console.warn("API fetch failed, calculating offline timings:", e);
         const cityKey = userCity.toLowerCase();
-        const coords = cityCoordinates[cityKey] || cityCoordinates["dhaka"];
+        let userCoords = null;
+        try {
+            const rawCoords = localStorage.getItem("user_coords");
+            if (rawCoords) userCoords = JSON.parse(rawCoords);
+        } catch (err) {}
+        const coords = (userCoords && userCoords.lat && userCoords.lng) 
+            ? userCoords 
+            : (cityCoordinates[cityKey] || cityCoordinates["dhaka"]);
         const offlineTimings = calculateOfflinePrayerTimes(currentDate, coords.lat, coords.lng);
         prayerTimings = offlineTimings;
         localStorage.setItem(cacheKey, JSON.stringify(prayerTimings));
@@ -1079,6 +1095,9 @@ const cityPillBtns = document.querySelectorAll(".city-pill-btn");
 const districtSelect = document.getElementById("district-select");
 const countrySelect = document.getElementById("country-select");
 const cityBackdrop = document.getElementById("city-modal-backdrop");
+const detectLocationBtn = document.getElementById("detect-location-btn");
+const detectLocationStatus = document.getElementById("detect-location-status");
+const detectLocationLabel = document.getElementById("detect-location-label");
 
 let selectedCityEn = localStorage.getItem("user_city") || "Dhaka";
 let selectedCityBn = localStorage.getItem("user_city_bn") || "ঢাকা (Dhaka)";
@@ -1086,6 +1105,8 @@ let selectedCityBn = localStorage.getItem("user_city_bn") || "ঢাকা (Dhak
 function openCityModal() {
     if (!cityModal) return;
     if (customCityInput) customCityInput.value = "";
+    if (detectLocationStatus) detectLocationStatus.style.display = "none";
+    if (detectLocationBtn) detectLocationBtn.classList.remove("detecting");
     
     // Sync division pills
     let pillMatched = false;
@@ -1137,6 +1158,174 @@ if (closeCityBtn) closeCityBtn.onclick = closeCityModal;
 if (cancelCityBtn) cancelCityBtn.onclick = closeCityModal;
 if (cityBackdrop) cityBackdrop.onclick = closeCityModal;
 
+// Auto-Detect Location Handler
+async function handleAutoDetectLocation() {
+    const isEn = typeof getAppLanguage === "function" ? (getAppLanguage() === "en") : false;
+    if (!detectLocationStatus) return;
+
+    if (!navigator.geolocation) {
+        detectLocationStatus.className = "detect-location-status error";
+        detectLocationStatus.textContent = isEn 
+            ? "Geolocation is not supported by your browser." 
+            : "আপনার ব্রাউজারে লোকেশন সুবিধা সমর্থিত নয়।";
+        detectLocationStatus.style.display = "block";
+        return;
+    }
+
+    if (detectLocationBtn) {
+        detectLocationBtn.classList.add("detecting");
+    }
+    if (detectLocationLabel) {
+        detectLocationLabel.textContent = isEn ? "Detecting location..." : "লোকেশন শনাক্ত করা হচ্ছে...";
+    }
+    detectLocationStatus.style.display = "none";
+
+    const resetBtn = () => {
+        if (detectLocationBtn) detectLocationBtn.classList.remove("detecting");
+        if (detectLocationLabel) {
+            detectLocationLabel.textContent = isEn ? "Auto Detect Location" : "অটো লোকেশন সনাক্তকরণ";
+        }
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            try {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                localStorage.setItem("user_coords", JSON.stringify({ lat, lng }));
+
+                let detectedCityEn = "";
+                let detectedCityBn = "";
+
+                // Reverse geocode via BigDataCloud client API
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 4000);
+                    const geoRes = await fetch(
+                        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+                        { signal: controller.signal }
+                    );
+                    clearTimeout(timeoutId);
+                    if (geoRes.ok) {
+                        const data = await geoRes.json();
+                        const rawCity = (data.city || data.locality || data.principalSubdivision || "").trim();
+                        const country = (data.countryName || "").trim();
+                        const isBD = data.countryCode === "BD" || country.toLowerCase() === "bangladesh";
+
+                        if (isBD) {
+                            let matchedOpt = null;
+                            if (districtSelect) {
+                                for (const opt of districtSelect.options) {
+                                    if (!opt.value) continue;
+                                    const optVal = opt.value.toLowerCase();
+                                    const cLower = rawCity.toLowerCase();
+                                    if (optVal === cLower || 
+                                        (cLower.includes(optVal) && optVal.length > 3) ||
+                                        (cLower === "chattogram" && optVal === "chittagong") ||
+                                        (cLower === "coxs bazar" && optVal === "cox's bazar")) {
+                                        matchedOpt = opt;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (matchedOpt) {
+                                detectedCityEn = matchedOpt.value;
+                                const bn = matchedOpt.dataset.bn || matchedOpt.value;
+                                detectedCityBn = `${bn} (${matchedOpt.value})`;
+                            } else {
+                                detectedCityEn = rawCity || "Dhaka";
+                                detectedCityBn = detectedCityEn;
+                            }
+                        } else {
+                            detectedCityEn = rawCity ? `${rawCity}, ${country}` : country || "Unknown";
+                            detectedCityBn = detectedCityEn;
+                        }
+                    }
+                } catch (geoErr) {
+                    console.warn("Reverse geocode failed, falling back to nearest city:", geoErr);
+                }
+
+                // Fallback to nearest division coordinates
+                if (!detectedCityEn) {
+                    let minDistance = Infinity;
+                    let closestKey = "dhaka";
+                    for (const [key, coords] of Object.entries(cityCoordinates)) {
+                        const d = Math.hypot(lat - coords.lat, lng - coords.lng);
+                        if (d < minDistance) {
+                            minDistance = d;
+                            closestKey = key;
+                        }
+                    }
+                    detectedCityEn = closestKey.charAt(0).toUpperCase() + closestKey.slice(1);
+                    detectedCityBn = detectedCityEn;
+                }
+
+                selectedCityEn = detectedCityEn;
+                selectedCityBn = detectedCityBn;
+                localStorage.setItem("user_city", selectedCityEn);
+                localStorage.setItem("user_city_bn", selectedCityBn);
+                localStorage.setItem("user_location_auto", "true");
+
+                // Sync modal elements
+                if (customCityInput) customCityInput.value = "";
+                if (districtSelect) {
+                    districtSelect.value = "";
+                    for (const opt of districtSelect.options) {
+                        if (opt.value && opt.value.toLowerCase() === selectedCityEn.toLowerCase()) {
+                            districtSelect.value = opt.value;
+                            break;
+                        }
+                    }
+                }
+                cityPillBtns.forEach(b => {
+                    b.classList.toggle("active", b.dataset.city.toLowerCase() === selectedCityEn.toLowerCase());
+                });
+
+                updateCityIndicator();
+                localStorage.removeItem(`times_${selectedCityEn}_${currentDate}`);
+
+                detectLocationStatus.className = "detect-location-status success";
+                detectLocationStatus.textContent = isEn 
+                    ? `✓ Location detected: ${selectedCityEn} (Auto-applied)`
+                    : `✓ লোকেশন শনাক্ত হয়েছে: ${selectedCityBn} (সংরক্ষিত)`;
+                detectLocationStatus.style.display = "block";
+
+                fetchPrayerTimes().then(() => {
+                    renderPrayers();
+                    setTimeout(() => {
+                        closeCityModal();
+                    }, 1200);
+                });
+            } catch (e) {
+                detectLocationStatus.className = "detect-location-status error";
+                detectLocationStatus.textContent = isEn ? "Failed to process location." : "লোকেশন প্রক্রিয়াকরণে সমস্যা হয়েছে।";
+                detectLocationStatus.style.display = "block";
+            } finally {
+                resetBtn();
+            }
+        },
+        (err) => {
+            resetBtn();
+            detectLocationStatus.className = "detect-location-status error";
+            if (err.code === 1) {
+                detectLocationStatus.textContent = isEn 
+                    ? "Location permission denied. Please allow location access." 
+                    : "লোকেশন পারমিশন মেলেনি। ব্রাউজারে পারমিশন অন করুন।";
+            } else {
+                detectLocationStatus.textContent = isEn 
+                    ? "Unable to detect location. Please select city manually." 
+                    : "লোকেশন শনাক্ত করা যায়নি। অনুগ্রহ করে ম্যানুয়ালি শহর নির্বাচন করুন।";
+            }
+            detectLocationStatus.style.display = "block";
+        },
+        { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 }
+    );
+}
+
+if (detectLocationBtn) {
+    detectLocationBtn.onclick = handleAutoDetectLocation;
+}
+
 // Division pill click handler
 cityPillBtns.forEach(btn => {
     btn.onclick = () => {
@@ -1147,6 +1336,8 @@ cityPillBtns.forEach(btn => {
         if (customCityInput) customCityInput.value = "";
         if (districtSelect) districtSelect.value = btn.dataset.city;
         if (countrySelect) countrySelect.value = "";
+        localStorage.removeItem("user_coords");
+        localStorage.removeItem("user_location_auto");
     };
 });
 
@@ -1160,6 +1351,8 @@ if (districtSelect) {
             selectedCityBn = `${bnName} (${selectedOpt.value})`;
             if (customCityInput) customCityInput.value = "";
             if (countrySelect) countrySelect.value = "";
+            localStorage.removeItem("user_coords");
+            localStorage.removeItem("user_location_auto");
             
             // Highlight division pill if it matches one of the 8 divisions
             cityPillBtns.forEach(b => {
@@ -1180,6 +1373,8 @@ if (countrySelect) {
             if (customCityInput) customCityInput.value = "";
             if (districtSelect) districtSelect.value = "";
             cityPillBtns.forEach(b => b.classList.remove("active"));
+            localStorage.removeItem("user_coords");
+            localStorage.removeItem("user_location_auto");
         }
     };
 }
@@ -1190,6 +1385,8 @@ if (customCityInput) {
             cityPillBtns.forEach(b => b.classList.remove("active"));
             if (districtSelect) districtSelect.value = "";
             if (countrySelect) countrySelect.value = "";
+            localStorage.removeItem("user_coords");
+            localStorage.removeItem("user_location_auto");
         }
     };
 }
@@ -1200,6 +1397,8 @@ if (saveCityBtn) {
         if (custom) {
             selectedCityEn = custom;
             selectedCityBn = custom;
+            localStorage.removeItem("user_coords");
+            localStorage.removeItem("user_location_auto");
         }
         
         localStorage.setItem("user_city", selectedCityEn);

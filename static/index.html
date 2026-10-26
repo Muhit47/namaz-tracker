@@ -1008,7 +1008,18 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </header>
-<div class="city-quick-picks">
+                <div class="location-detect-wrapper" style="margin-bottom: 16px;">
+                    <button type="button" id="detect-location-btn" class="detect-location-btn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
+                            <circle cx="12" cy="12" r="8" stroke-dasharray="2 2"></circle>
+                        </svg>
+                        <span id="detect-location-label">অটো লোকেশন সনাক্তকরণ</span>
+                    </button>
+                    <div id="detect-location-status" class="detect-location-status" style="display: none;"></div>
+                </div>
+                <div class="city-quick-picks">
                     <span class="quick-pick-label">বিভাগ নির্বাচন (৮টি বিভাগ):</span>
                     <div class="quick-city-pills">
                         <button type="button" class="city-pill-btn active" data-city="Dhaka" data-bn="ঢাকা">ঢাকা</button>
