@@ -40,6 +40,7 @@ from db import (
 )
 from hadith_service import fetch_and_cache_chapters, fetch_and_cache_chapter_items
 import os
+from datetime import datetime, date
 
 app = Flask(__name__, static_folder="static")
 
@@ -67,10 +68,34 @@ def serve_root_static(filename):
     return jsonify({"error": "Not found"}), 404
 
 
+def get_approximate_active_waqt(time_str: str) -> str:
+    """Return active prayer name using fallback approximate times:
+    Fajr: 04:00-06:30, Dhuhr: 12:00-15:00, Asr: 15:00-17:30,
+    Maghrib: 17:30-19:30, Isha: 19:30-04:00.
+    """
+    if "04:00" <= time_str < "06:30":
+        return "Fajr"
+    elif "12:00" <= time_str < "15:00":
+        return "Dhuhr"
+    elif "15:00" <= time_str < "17:30":
+        return "Asr"
+    elif "17:30" <= time_str < "19:30":
+        return "Maghrib"
+    elif time_str >= "19:30" or time_str < "04:00":
+        return "Isha"
+    return ""
+
+
 @app.route("/api/prayers/<date_str>")
 def get_prayers(date_str):
     try:
         prayers = get_prayers_for_date(date_str)
+        is_today = (date_str == date.today().isoformat())
+        active_waqt = get_approximate_active_waqt(datetime.now().strftime("%H:%M")) if is_today else None
+
+        for p in prayers:
+            p["is_active"] = bool(is_today and p.get("prayer_name") == active_waqt)
+
         return jsonify(prayers)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -348,6 +373,7 @@ def import_backup():
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
+        data.pop('local_settings', None)
         if import_user_data(data):
             return jsonify({"success": True})
         else:
@@ -363,6 +389,6 @@ def serve_static(path):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    debug = os.environ.get("FLASK_DEBUG", "True").lower() in ("true", "1")
+    debug = os.environ.get("FLASK_DEBUG", "False").lower() in ("true", "1")
     print(f"🚀 Namaz Tracker Server is running at http://localhost:{port}")
     app.run(debug=debug, host=os.environ.get("HOST", "0.0.0.0"), port=port)

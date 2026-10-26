@@ -1,7 +1,7 @@
 import sqlite3
 from contextlib import contextmanager
 from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 DB_NAME = "namaz_tracker.db"
 PRAYER_NAMES = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
@@ -74,6 +74,8 @@ def init_db() -> None:
                 text_ar TEXT NOT NULL,
                 translit_bn TEXT NOT NULL,
                 trans_bn TEXT NOT NULL,
+                translit_en TEXT DEFAULT '',
+                trans_en TEXT DEFAULT '',
                 FOREIGN KEY(surah_no) REFERENCES quran_surahs(surah_no),
                 UNIQUE(surah_no, ayah_no)
             )
@@ -110,7 +112,8 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS hadith_books (
                 id TEXT PRIMARY KEY,
                 name_bn TEXT NOT NULL,
-                name_ar TEXT NOT NULL
+                name_ar TEXT NOT NULL,
+                name_en TEXT DEFAULT ''
             )
         """)
 
@@ -149,6 +152,7 @@ def init_db() -> None:
                 chapter_no INTEGER NOT NULL,
                 name_bn TEXT NOT NULL,
                 name_ar TEXT DEFAULT '',
+                name_en TEXT DEFAULT '',
                 total_hadith INTEGER DEFAULT 0,
                 start_hadith INTEGER DEFAULT 0,
                 end_hadith INTEGER DEFAULT 0,
@@ -167,6 +171,8 @@ def init_db() -> None:
                 translit_bn TEXT DEFAULT '',
                 text_bn TEXT NOT NULL,
                 grade_bn TEXT DEFAULT '',
+                translit_en TEXT DEFAULT '',
+                text_en TEXT DEFAULT '',
                 UNIQUE(book_id, hadith_no)
             )
         """)
@@ -180,6 +186,22 @@ def init_db() -> None:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Migrations for existing DBs that may be missing new columns
+        for sql in [
+            "ALTER TABLE quran_ayahs ADD COLUMN translit_en TEXT DEFAULT ''",
+            "ALTER TABLE quran_ayahs ADD COLUMN trans_en TEXT DEFAULT ''",
+            "ALTER TABLE hadith_books ADD COLUMN name_en TEXT DEFAULT ''",
+            "ALTER TABLE hadith_chapters ADD COLUMN name_en TEXT DEFAULT ''",
+            "ALTER TABLE hadith_full_collection ADD COLUMN translit_en TEXT DEFAULT ''",
+            "ALTER TABLE hadith_full_collection ADD COLUMN text_en TEXT DEFAULT ''",
+        ]:
+            try:
+                conn.execute(sql)
+            except sqlite3.OperationalError:
+                pass  # column already exists
+
+        cursor.execute("DELETE FROM prayers_log WHERE prayer_name NOT IN ('Fajr','Dhuhr','Asr','Maghrib','Isha')")
 
         cursor.execute("SELECT COUNT(*) FROM hadiths")
         if cursor.fetchone()[0] == 0:
@@ -226,21 +248,20 @@ def get_prayers_for_date(date_str: str) -> List[Dict]:
         )
         rows = cursor.fetchall()
 
-        if not rows:
-            for prayer in PRAYER_NAMES:
-                cursor.execute(
-                    """INSERT INTO prayers_log (date, prayer_name, status, is_sunnah, notes)
-                       VALUES (?, ?, 'pending', 0, '')""",
-                    (date_str, prayer)
-                )
-            conn.commit()
-            cursor.execute(
-                "SELECT * FROM prayers_log WHERE date = ? ORDER BY id",
-                (date_str,)
-            )
-            rows = cursor.fetchall()
+    if not rows:
+        return [
+            {
+                "date": date_str,
+                "prayer_name": prayer,
+                "status": "pending",
+                "is_sunnah": 0,
+                "notes": "",
+                "updated_at": "",
+            }
+            for prayer in PRAYER_NAMES
+        ]
 
-        return [dict(row) for row in rows]
+    return [dict(row) for row in rows]
 
 
 def update_prayer_status(
@@ -273,7 +294,7 @@ def update_prayer_status(
         else:
             cursor.execute(
                 """INSERT INTO prayers_log (date, prayer_name, status, is_sunnah, notes)
-                   VALUES (?, 'pending', ?, ?, ?)
+                   VALUES (?, ?, 'pending', ?, ?)
                    ON CONFLICT(date, prayer_name) DO UPDATE SET
                        is_sunnah = excluded.is_sunnah,
                        notes = excluded.notes,
@@ -410,26 +431,63 @@ def get_streak_stats() -> Dict:
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT date,
-                SUM(CASE WHEN status IN ('jamaah', 'on_time', 'late') THEN 1 ELSE 0 END) as total_prayed
+            SELECT date
             FROM prayers_log
+            WHERE status IN ('on_time', 'jamaah', 'late', 'qaza')
             GROUP BY date
+            HAVING COUNT(DISTINCT prayer_name) = 5
             ORDER BY date DESC
         """)
         rows = cursor.fetchall()
 
+    if not rows:
+        return {
+            "current_streak": 0,
+            "max_streak": 0
+        }
+
+    qualifying_dates = []
+    for row in rows:
+        if isinstance(row, (dict, sqlite3.Row)):
+            d_val = row["date"]
+        else:
+            d_val = row[0]
+        if isinstance(d_val, str):
+            qualifying_dates.append(date.fromisoformat(d_val))
+        elif isinstance(d_val, date):
+            qualifying_dates.append(d_val)
+
+    qualifying_set = set(qualifying_dates)
+
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+
+    # Walk backwards from yesterday (or today if today has all 5 done)
     current_streak = 0
+    check_date = today if today in qualifying_set else yesterday
+    while check_date in qualifying_set:
+        current_streak += 1
+        check_date -= timedelta(days=1)
+
+    # Single pass over all qualifying dates for max_streak
     max_streak = 0
     temp_streak = 0
-
-    for row in rows:
-        if row["total_prayed"] >= 4:
+    prev_date = None
+    for d in qualifying_dates:
+        if prev_date is None:
+            temp_streak = 1
+        elif prev_date - d == timedelta(days=1):
             temp_streak += 1
-            max_streak = max(max_streak, temp_streak)
+        elif prev_date == d:
+            continue
         else:
-            if current_streak == 0:
-                current_streak = temp_streak
-            temp_streak = 0
+            temp_streak = 1
+
+        if temp_streak > max_streak:
+            max_streak = temp_streak
+        prev_date = d
+
+    max_streak = max(max_streak, current_streak)
 
     return {
         "current_streak": current_streak,

@@ -493,7 +493,7 @@ const DICT_BN_EN = {
     "হিজরি ক্যালেন্ডার দেখুন": "View Hijri Calendar",
     "জুমু'আ বার ও বিশেষ সুন্নাত আমল": "Friday (Jumu'ah) Virtues & Sunnah Deeds",
     "📖 সূরা কাহাফ তিলাওয়াত": "📖 Reciting Surah Al-Kahf",
-    "\"যে ব্যক্তি জুমু'আর দিন সূরা কাহাফ তিলাওয়াত করবে, তার জন্য এক জুমু'আ থেকে অন্য জুমু'আ পর্যন্ত đặc biệt নূর চমকাতে থাকবে।\" (সহিহ আত-তারগিব: ৭৩৬)": "\"Whoever recites Surah Al-Kahf on Friday, a light will shine for him from one Friday to the next.\" (Sahih at-Targhib: 736)",
+    "\"যে ব্যক্তি জুমু'আর দিন সূরা কাহাফ তিলাওয়াত করবে, তার জন্য এক জুমু'আ থেকে অন্য জুমু'আ পর্যন্ত বিশেষ নূর চমকাতে থাকবে।\" (সহিহ আত-তারগিব: ৭৩৬)": "\"Whoever recites Surah Al-Kahf on Friday, a light will shine for him from one Friday to the next.\" (Sahih at-Targhib: 736)",
     "💖 অধিক দরুদ শরীফ পাঠ": "💖 Sending Abundant Salawat upon the Prophet",
     "\"তোমরা জুমু'আর দিনে আমার উপর অধিক পরিমাণে দরুদ পাঠ করো, কেননা তোমাদের দরুদ আমার কাছে পেশ করা হয়।\" (আবু দাউদ: ১০৪৭)": "\"Send abundant blessings upon me on Friday, for your blessings are presented to me.\" (Abu Dawud: 1047)",
     "🚿 জুমু'আর বিশেষ প্রস্তুতি": "🚿 Special Sunnah Preparation for Jumu'ah",
@@ -881,7 +881,8 @@ function applyFullSitewideTranslation(lang) {
                 // Preserve Arabic Quran/Hadith text
                 if (parent.classList.contains("ayah-arabic") || parent.classList.contains("hadith-card-arabic") || 
                     parent.classList.contains("bismillah-arabic") || parent.classList.contains("arabic-name") ||
-                    parent.classList.contains("arabic-text") || parent.classList.contains("hadith-widget-ar")) {
+                    parent.classList.contains("arabic-text") || parent.classList.contains("hadith-widget-ar") ||
+                    parent.classList.contains("app-title") || parent.classList.contains("app-logo")) {
                     return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
@@ -1015,6 +1016,57 @@ function applyFullSitewideTranslation(lang) {
         langBtn.title = isEn ? "বাংলায় পরিবর্তন করুন" : "Switch to English";
         langBtn.setAttribute("aria-label", isEn ? "বাংলায় পরিবর্তন করুন" : "Switch to English");
     }
+    // 8. Explicitly translate tab labels
+    const TAB_MAP = {
+        "tab_today":     { bn: "আজকের নামায",    en: "Today's Prayers" },
+        "tab_qaza":      { bn: "আমলনামা",         en: "Deeds & Qaza" },
+        "tab_ramadan":   { bn: "সেহরি ও ইফতার",   en: "Sehri & Iftar" },
+        "tab_analytics": { bn: "ক্যালেন্ডার ও স্ট্রিক", en: "Calendar & Streaks" },
+        "tab_guide":     { bn: "নামাজের নিয়ম",   en: "Prayer Guide" },
+        "tab_wudu":      { bn: "ওজু",             en: "Wudu & Purity" },
+        "tab_quran":     { bn: "আল কুরআন",       en: "Al-Qur'an" },
+        "tab_hadith":    { bn: "হাদীস শরীফ",     en: "Hadith Sharif" },
+    };
+    for (const key of Object.keys(TAB_MAP)) {
+        const el = document.getElementById(key) || document.getElementById(key.replace("_", "-"));
+        if (el) {
+            // Find the last span child (label), not the first (icon)
+            const spans = el.querySelectorAll('span');
+            const labelSpan = el.querySelector('.tab-label')
+                           || el.querySelector(`[data-i18n="${key}"]`)
+                           || (spans.length > 0 ? spans[spans.length - 1] : null);
+            if (labelSpan) {
+                labelSpan.textContent = isEn ? TAB_MAP[key].en : TAB_MAP[key].bn;
+            } else {
+                const textNodes = [...el.childNodes].filter(n => n.nodeType === 3);
+                if (textNodes.length > 0) {
+                    textNodes[textNodes.length - 1].nodeValue = ' ' + (isEn ? TAB_MAP[key].en : TAB_MAP[key].bn);
+                } else {
+                    el.lastChild.textContent = isEn ? TAB_MAP[key].en : TAB_MAP[key].bn;
+                }
+            }
+        }
+    }
+
+    // 9. Fix Next Prayer and Countdown pill sizing / wrapping
+    const nextPrayerInfo = document.getElementById("next-prayer-info");
+    if (nextPrayerInfo) {
+        nextPrayerInfo.style.height = "auto";
+        nextPrayerInfo.style.minHeight = "unset";
+        nextPrayerInfo.style.whiteSpace = isEn ? "nowrap" : "normal";
+    }
+    const nextWaqtPill = document.getElementById("next-waqt-pill");
+    if (nextWaqtPill) {
+        nextWaqtPill.style.height = "auto";
+        nextWaqtPill.style.minHeight = "unset";
+        nextWaqtPill.style.whiteSpace = isEn ? "nowrap" : "normal";
+    }
+    document.querySelectorAll(".next-prayer-pill, .countdown-pill, .next-waqt-pill, .ramadan-countdown-pill").forEach(el => {
+        el.style.height = "auto";
+        el.style.minHeight = "unset";
+        el.style.whiteSpace = isEn ? "nowrap" : "normal";
+    });
+
 }
 
 // Auto-run on DOM ready

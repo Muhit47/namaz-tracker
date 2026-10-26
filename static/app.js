@@ -206,6 +206,14 @@ async function init() {
         exportBtn.onclick = async () => {
             const res = await fetch('/api/backup/export');
             const data = await res.json();
+            const localData = {
+                app_lang: localStorage.getItem('app_lang') || 'bn',
+                user_city: localStorage.getItem('user_city') || '',
+                roza_start: localStorage.getItem('roza_start') || '',
+                roza_end: localStorage.getItem('roza_end') || '',
+                hijri_offset: localStorage.getItem('hijri_offset') || '0',
+            };
+            data.local_settings = localData;
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -240,10 +248,13 @@ async function init() {
                         });
                         const result = await res.json();
                         if (result.success) {
+                            if (data.local_settings) {
+                                Object.entries(data.local_settings).forEach(([k, v]) => {
+                                    if (v !== null && v !== undefined) localStorage.setItem(k, v);
+                                });
+                            }
                             alert(isEn ? "Backup restored successfully!" : "ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!");
-                            renderPrayers();
-                            loadAmalnamah();
-                            loadCalendar();
+                            location.reload();
                         } else {
                             alert((isEn ? "Failed to restore backup: " : "ব্যাকআপ রিস্টোর করতে ব্যর্থ: ") + (result.error || 'Unknown error'));
                         }
@@ -256,6 +267,21 @@ async function init() {
             importInput.value = '';
         };
     }
+
+    scheduleMidnightRollover();
+}
+
+function scheduleMidnightRollover() {
+    const now = new Date();
+    const msUntilMidnight = new Date(
+        now.getFullYear(), now.getMonth(), now.getDate() + 1
+    ) - now;
+    setTimeout(() => {
+        currentDate = getLocalDateString();
+        syncDateDisplays();
+        fetchPrayerTimes().then(() => renderPrayers());
+        scheduleMidnightRollover();
+    }, msUntilMidnight);
 }
 
 // APIs
@@ -264,6 +290,11 @@ async function api(path, options = {}) {
         headers: { "Content-Type": "application/json" },
         ...options,
     });
+    if (!res.ok) {
+        let errMsg = `HTTP ${res.status}`;
+        try { const e = await res.json(); errMsg = e.error || errMsg; } catch {}
+        throw new Error(errMsg);
+    }
     return res.json();
 }
 
@@ -324,9 +355,9 @@ function calculateOfflinePrayerTimes(dateStr, lat, lng, timezone = 6) {
     const asr = timeMidday + (Math.acos(cosAsr) / rad / 15);
     
     const toHHMM = (h) => {
-        const totalMinutes = Math.round(h * 60);
-        const hh = Math.floor(totalMinutes / 60) % 24;
-        const mm = totalMinutes % 60;
+        const totalMinutes = Math.round(h * 60) + Math.round(timezone * 60);
+        const hh = ((Math.floor(totalMinutes / 60) % 24) + 24) % 24;
+        const mm = ((totalMinutes % 60) + 60) % 60;
         return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
     };
 
@@ -384,10 +415,12 @@ async function fetchPrayerTimes() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         let url;
+        const [y, m, d] = currentDate.split("-");
+        const dateParam = `${d}-${m}-${y}`;
         if (bdCities.has(userCity.toLowerCase())) {
-            url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(userCity)}&country=Bangladesh&method=1`;
+            url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(userCity)}&country=Bangladesh&method=1&school=1&date=${dateParam}`;
         } else {
-            url = `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(userCity)}`;
+            url = `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(userCity)}&method=1&school=1&date=${dateParam}`;
         }
         const res = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -467,8 +500,11 @@ async function renderPrayers() {
 
     // Event Handlers (status)
     document.querySelectorAll(".status-pill-btn").forEach(btn => btn.onclick = async (e) => {
-        const { status, prayer } = e.target.dataset;
-        await api("/prayers", { method: "POST", body: JSON.stringify({ date: currentDate, prayer_name: prayer, status }) });
+        const { status, prayer } = (e.currentTarget || e.target).dataset;
+        const currentPrayer = prayers.find(x => x.prayer_name === prayer);
+        const currentStatus = currentPrayer ? currentPrayer.status : null;
+        const newStatus = currentStatus === status ? "pending" : status;
+        await api("/prayers", { method: "POST", body: JSON.stringify({ date: currentDate, prayer_name: prayer, status: newStatus }) });
         renderPrayers();
         loadAmalnamah();
     });
@@ -690,6 +726,16 @@ function updateRamadanCountdown() {
 
 // Tabs
 document.querySelectorAll(".tab-btn").forEach(tab => tab.onclick = () => {
+    // Save last-read positions when switching away from Quran or Hadith
+    const quranReaderEl = document.getElementById("quran-reader-container");
+    if (quranReaderEl && quranReaderEl.style.display !== "none" && currentSurahNo) {
+        saveQuranLastRead(currentSurahNo, lastSeenAyahNo, currentSurahNameBn);
+    }
+    const hadithReaderEl = document.getElementById("hadith-reader-container");
+    if (hadithReaderEl && hadithReaderEl.style.display !== "none" && currentHadithBookId && currentHadithChapterNo) {
+        saveHadithLastRead(currentHadithBookId, currentHadithChapterNo, currentHadithBookName, currentHadithChapterName, lastSeenHadithNo);
+    }
+
     document.querySelectorAll(".tab-btn").forEach(t => {
         t.classList.remove("active");
         t.setAttribute("aria-selected", "false");
@@ -731,7 +777,7 @@ function updateDate(delta) {
     const day = String(d.getDate()).padStart(2, '0');
     currentDate = `${y}-${m}-${day}`;
     syncDateDisplays();
-    renderPrayers();
+    fetchPrayerTimes().then(() => renderPrayers());
 }
 
 const prevBtn = document.getElementById("prev-day");
@@ -1184,6 +1230,21 @@ async function loadAmalnamah() {
     const rate = totalPossible > 0 ? Math.round((totalPrayed / totalPossible) * 100) : 0;
     document.getElementById("amal-stat-total-rate").textContent = isEn ? `${toBN(rate)}% Completion Rate` : `${toBN(rate)}% আদায়ের হার`;
 
+    // Calculate and update Jamat Rate and On Time Rate percentages
+    const totalPrayers = overview.total_prayed || 0;
+    const jamaahPct = totalPrayers > 0 ? Math.round(((overview.jamaah_count || 0) / totalPrayers) * 100) : 0;
+    const ontimePct = totalPrayers > 0 ? Math.round(((overview.ontime_count || 0) / totalPrayers) * 100) : 0;
+
+    const statJamaah = document.getElementById("stat-jamaah");
+    if (statJamaah) {
+        statJamaah.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${toBN(jamaahPct)}%` : `${toBN(jamaahPct)}%`);
+    }
+
+    const statOntime = document.getElementById("stat-ontime");
+    if (statOntime) {
+        statOntime.textContent = totalPrayers === 0 ? (isEn ? "0%" : "০%") : (isEn ? `${toBN(ontimePct)}%` : `${toBN(ontimePct)}%`);
+    }
+
     // Populate #amal-waqt-grid with 5 Waqt Cards
     const waqtGrid = document.getElementById("amal-waqt-grid");
     if (!waqtGrid) return;
@@ -1580,6 +1641,9 @@ if (document.readyState === "loading") {
 let quranSurahs = [];
 let quranBookmarks = new Set();
 let currentSurahNo = 1;
+let currentSurahNameBn = '';
+let lastSeenAyahNo = 1;
+let quranAyahObserver = null;
 let quranInitialized = false;
 
 async function initQuran() {
@@ -1756,7 +1820,9 @@ async function openSurah(surahNo, targetAyah = null) {
             metaEl.textContent = `${revType} • ${toBN(surah.total_ayah)} ${ayahWord} • ${meaning}`;
         }
 
-        saveQuranLastRead(surah.surah_no, targetAyah || 1, isEn ? (surah.name_en || surah.name_bn) : surah.name_bn);
+        currentSurahNameBn = isEn ? (surah.name_en || surah.name_bn) : surah.name_bn;
+        lastSeenAyahNo = targetAyah || 1;
+        saveQuranLastRead(surah.surah_no, lastSeenAyahNo, currentSurahNameBn);
 
         ayahsList.innerHTML = ayahs.map(a => {
             const isBm = quranBookmarks.has(`${a.surah_no}:${a.ayah_no}`);
@@ -1765,7 +1831,7 @@ async function openSurah(surahNo, targetAyah = null) {
             const pronLabel = isEn ? 'Pronunciation:' : 'উচ্চারণ:';
             const meanLabel = isEn ? 'Translation:' : 'অর্থ:';
             return `
-                <div class="ayah-card" id="ayah-${a.surah_no}-${a.ayah_no}">
+                <div class="ayah-card" id="ayah-${a.surah_no}-${a.ayah_no}" data-ayah-no="${a.ayah_no}">
                     <div class="ayah-header">
                         <span class="ayah-badge">${toBN(a.ayah_no)}</span>
                         <div class="ayah-actions">
@@ -1783,6 +1849,17 @@ async function openSurah(surahNo, targetAyah = null) {
                 </div>
             `;
         }).join("");
+
+        if (quranAyahObserver) quranAyahObserver.disconnect();
+        quranAyahObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const aNo = parseInt(entry.target.dataset.ayahNo, 10);
+                    if (aNo) lastSeenAyahNo = aNo;
+                }
+            });
+        }, { threshold: 0.2 });
+        ayahsList.querySelectorAll(".ayah-card").forEach(card => quranAyahObserver.observe(card));
 
         if (targetAyah) {
             setTimeout(() => {
@@ -1802,6 +1879,9 @@ async function openSurah(surahNo, targetAyah = null) {
 }
 
 function closeSurahReader() {
+    if (currentSurahNo) {
+        saveQuranLastRead(currentSurahNo, lastSeenAyahNo, currentSurahNameBn);
+    }
     const grid = document.getElementById("quran-surahs-grid");
     const reader = document.getElementById("quran-reader-container");
     const headerCard = document.querySelector(".quran-header-card");
@@ -1962,8 +2042,11 @@ let currentHadithBookId = null;
 let currentHadithBookName = '';
 let currentHadithBookArabic = '';
 let currentHadithChapterNo = 1;
+let currentHadithChapterName = '';
 let currentHadithChapters = [];
 let currentHadithMode = 'books'; // 'books' or 'topics'
+let lastSeenHadithNo = 1;
+let hadithItemObserver = null;
 
 async function initHadith() {
     if (!hadithModuleInitialized) {
@@ -2025,6 +2108,9 @@ function setupHadithEventListeners() {
     const backToBooksBtn = document.getElementById("hadith-back-to-books-btn");
     if (backToBooksBtn) {
         backToBooksBtn.onclick = () => {
+            if (currentHadithBookId && currentHadithChapterNo) {
+                saveHadithLastRead(currentHadithBookId, currentHadithChapterNo, currentHadithBookName, currentHadithChapterName, lastSeenHadithNo);
+            }
             const booksGrid = document.getElementById("hadith-books-grid");
             const chaptersContainer = document.getElementById("hadith-chapters-container");
             const readerContainer = document.getElementById("hadith-reader-container");
@@ -2039,6 +2125,9 @@ function setupHadithEventListeners() {
     const backToChaptersBtn = document.getElementById("hadith-back-to-chapters-btn");
     if (backToChaptersBtn) {
         backToChaptersBtn.onclick = () => {
+            if (currentHadithBookId && currentHadithChapterNo) {
+                saveHadithLastRead(currentHadithBookId, currentHadithChapterNo, currentHadithBookName, currentHadithChapterName, lastSeenHadithNo);
+            }
             const booksGrid = document.getElementById("hadith-books-grid");
             const chaptersContainer = document.getElementById("hadith-chapters-container");
             const readerContainer = document.getElementById("hadith-reader-container");
@@ -2156,20 +2245,24 @@ function renderHadithBooksGrid() {
         return;
     }
 
-    grid.innerHTML = fullHadithBooks.map(b => {
+    grid.innerHTML = fullHadithBooks.map(book => {
+        const b = book;
         const stat = isEn
-            ? (HADITH_BOOK_STATS_EN[b.id] || { total_hadith: "Sahih Hadith", desc: "Authentic Hadith Compendium", icon: "📖" })
-            : (HADITH_BOOK_STATS[b.id] || { total_hadith: "সহীহ হাদীস", desc: "প্রামাণ্য হাদিস গ্রন্থ", icon: "📖" });
-        const bookName = isEn ? (b.name_en || t(b.name_bn) || b.name_bn) : b.name_bn;
+            ? (HADITH_BOOK_STATS_EN[book.id] || { total_hadith: "Sahih Hadith", desc: "Authentic Hadith Compendium", icon: "📖" })
+            : (HADITH_BOOK_STATS[book.id] || { total_hadith: "সহীহ হাদীস", desc: "প্রামাণ্য হাদিস গ্রন্থ", icon: "📖" });
+        const bookName = isEn ? (book.name_en || t(book.name_bn) || book.name_bn) : book.name_bn;
         const bookDesc = stat.desc;
         const count = stat.total_hadith;
         const action = isEn ? "View Chapters →" : "অধ্যায়সমূহ দেখুন →";
+        const safeName = (book.name_en || book.name_bn || '').replace(/'/g, "\\'");
+        const safeNameBn = (book.name_bn || '').replace(/'/g, "\\'");
+        const safeNameAr = (book.name_ar || '').replace(/'/g, "\\'");
         return `
-            <div class="hadith-book-card" onclick="openHadithChapters('${b.id}', '${b.name_bn}', '${b.name_ar || ''}', '${b.name_en || ''}')">
+            <div class="hadith-book-card" onclick="openHadithChapters('${book.id}', '${safeNameBn}', '${safeNameAr}', '${safeName}')">
                 <div>
                     <div class="hadith-book-card-header">
                         <div class="hadith-book-icon">${stat.icon}</div>
-                        <span class="hadith-book-arabic">${b.name_ar || ''}</span>
+                        <span class="hadith-book-arabic">${book.name_ar || ''}</span>
                     </div>
                     <div class="hadith-book-name">${bookName}</div>
                     <div class="hadith-book-meta">${bookDesc}</div>
@@ -2274,8 +2367,11 @@ async function openHadithChapter(bookId, chapterNo, targetHadithNo = null) {
     if (titleEl) titleEl.textContent = `${toBN(chapterNo)}. ${chapterName}`;
     if (metaEl) metaEl.textContent = isEn ? `${displayBookName} • Hadiths` : `${currentHadithBookName || bookId} • হাদীসসমূহ`;
 
+    currentHadithChapterName = chapterName;
+    lastSeenHadithNo = targetHadithNo || 1;
+
     // Save Last Read
-    saveHadithLastRead(bookId, chapterNo, currentHadithBookName, chapterName);
+    saveHadithLastRead(bookId, chapterNo, currentHadithBookName, chapterName, lastSeenHadithNo);
 
     const prevBtn = document.getElementById("hadith-reader-prev-chapter");
     const nextBtn = document.getElementById("hadith-reader-next-chapter");
@@ -2306,7 +2402,7 @@ async function openHadithChapter(bookId, chapterNo, targetHadithNo = null) {
             const transLabel = isEn ? 'Translation:' : 'অনুবাদ:';
             const hadithBadge = isEn ? `Hadith #${toBN(h.hadith_no)}` : `হাদীস নং ${toBN(h.hadith_no)}`;
             return `
-                <div class="ayah-card" id="hadith-item-${h.hadith_no}">
+                <div class="ayah-card" id="hadith-item-${h.hadith_no}" data-hadith-no="${h.hadith_no}">
                     <div class="ayah-header">
                         <span class="ayah-badge" style="width: auto; padding: 2px 10px; border-radius: 12px;">${hadithBadge}</span>
                         <div class="ayah-actions">
@@ -2324,6 +2420,17 @@ async function openHadithChapter(bookId, chapterNo, targetHadithNo = null) {
                 </div>
             `;
         }).join("");
+
+        if (hadithItemObserver) hadithItemObserver.disconnect();
+        hadithItemObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const hNo = parseInt(entry.target.dataset.hadithNo, 10);
+                    if (hNo) lastSeenHadithNo = hNo;
+                }
+            });
+        }, { threshold: 0.2 });
+        itemsList.querySelectorAll(".ayah-card").forEach(card => hadithItemObserver.observe(card));
 
         if (targetHadithNo) {
             setTimeout(() => {
@@ -2384,10 +2491,11 @@ async function loadHadithLastRead() {
     }
 }
 
-async function saveHadithLastRead(bookId, chapterNo, bookName, chapterName) {
+async function saveHadithLastRead(bookId, chapterNo, bookName, chapterName, hadithNo) {
+    const finalHadithNo = hadithNo || lastSeenHadithNo || 1;
     const banner = document.getElementById("hadith-last-read-card");
     const titleEl = document.getElementById("hadith-last-read-title");
-    const data = { book_id: bookId, chapter_no: chapterNo, book_name_bn: bookName, chapter_name_bn: chapterName };
+    const data = { book_id: bookId, chapter_no: chapterNo, hadith_no: finalHadithNo, book_name_bn: bookName, chapter_name_bn: chapterName };
     localStorage.setItem("hadith_last_read", JSON.stringify(data));
     if (banner) {
         banner.dataset.hasData = "true";
@@ -2407,7 +2515,7 @@ async function saveHadithLastRead(bookId, chapterNo, bookName, chapterName) {
     try {
         await api('/hadith/last-read', {
             method: 'POST',
-            body: JSON.stringify({ book_id: bookId, chapter_no: chapterNo, hadith_no: 1 })
+            body: JSON.stringify({ book_id: bookId, chapter_no: chapterNo, hadith_no: finalHadithNo })
         });
     } catch (e) {
         console.error("Failed to save last read hadith", e);
@@ -2791,3 +2899,48 @@ window.onLanguageChanged = function(lang) {
         showToast(lang === "en" ? "Switched to English" : "বাংলা ভাষা সক্রিয় হয়েছে");
     }
 };
+
+// Jumuah Sunnah Deeds Modal
+function loadJumuahChecklist() {
+    const modal = document.getElementById("jumuah-modal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        if (typeof modal.showModal === "function" && !modal.open) {
+            try { modal.showModal(); } catch (e) {}
+        }
+        const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+}
+
+function initJumuahModalListeners() {
+    const hideJumuahModal = () => {
+        const modal = document.getElementById("jumuah-modal");
+        if (modal) {
+            modal.classList.add("hidden");
+            if (typeof modal.close === "function" && modal.open) {
+                try { modal.close(); } catch (e) {}
+            }
+        }
+    };
+
+    const closeBtn = document.getElementById("jumuah-modal-close");
+    if (closeBtn) closeBtn.addEventListener("click", hideJumuahModal);
+
+    const backdrop = document.getElementById("jumuah-modal-backdrop");
+    if (backdrop) backdrop.addEventListener("click", hideJumuahModal);
+
+    const closeIconBtn = document.getElementById("close-jumuah-modal");
+    if (closeIconBtn) closeIconBtn.addEventListener("click", hideJumuahModal);
+
+    const closeActionBtn = document.getElementById("close-jumuah-btn");
+    if (closeActionBtn) closeActionBtn.addEventListener("click", hideJumuahModal);
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initJumuahModalListeners);
+} else {
+    initJumuahModalListeners();
+}
