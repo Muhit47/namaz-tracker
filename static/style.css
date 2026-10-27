@@ -150,6 +150,7 @@ body.dark-mode {
     --bg-primary: #0F172A;
     --bg-card: #1E293B;
     --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
     --text-muted: #94A3B8;
     --border-color: #334155;
     --glass-bg: rgba(15, 23, 42, 0.85);
@@ -322,7 +323,11 @@ svg {
     cursor: default;
 }
 
-.logo-icon.nt-logo-badge {
+.header-logo {
+    height: 34px;
+    width: auto;
+    flex-shrink: 0;
+}
     width: 32px;
     height: 32px;
     border-radius: 9px;
@@ -1757,7 +1762,32 @@ body.dark-mode .detect-location-status.error {
     background: #FFFFFF;
 }
 
-/* 17. Ramadan Dua Modal Styles */
+.ayah-card.ayah-playing {
+    border-color: #10B981;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.03);
+}
+.ayah-card.ayah-playing .ayah-audio-btn {
+    background: #10B981;
+    color: #FFFFFF;
+    border-color: #10B981;
+}
+
+.ayah-audio-btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.ayah-audio-btn:hover {
+    background: #E2E8F0;
+}
 .dua-modal-content {
     max-width: 580px;
 }
@@ -3844,4 +3874,650 @@ body.dark-mode .lang-toggle-pill {
 body.dark-mode .lang-toggle-pill:hover {
     background: #10B981;
     color: #064E3B;
+}
+
+/* ========================================================
+   Waqt Reminder & Audio Notification Styles (Task 3)
+   ======================================================== */
+.icon-btn.has-reminder-active {
+    position: relative;
+    border-color: #10B981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+.icon-btn.has-reminder-active::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    background-color: #10B981;
+    border-radius: 50%;
+    border: 1px solid #FFFFFF;
+}
+
+.reminder-modal-content {
+    max-width: 500px;
+    font-family: 'Siyam Rupali', 'Noto Sans Bengali', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.reminder-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 8px 0;
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.reminder-setting-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 14px;
+    transition: all 0.2s ease;
+}
+.reminder-setting-card:hover {
+    border-color: #CBD5E1;
+}
+
+.reminder-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.reminder-card-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.reminder-setting-title {
+    font-weight: 700;
+    font-size: 0.94rem;
+    color: #0F172A;
+}
+
+.reminder-setting-desc {
+    font-size: 0.8rem;
+    color: #64748B;
+    line-height: 1.35;
+}
+
+/* Toggle Switch */
+.reminder-switch-label {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.reminder-toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.reminder-switch-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #CBD5E1;
+    border-radius: 24px;
+    transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reminder-switch-slider::before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.reminder-toggle-input:checked + .reminder-switch-slider {
+    background-color: #10B981;
+}
+
+.reminder-toggle-input:checked + .reminder-switch-slider::before {
+    transform: translateX(20px);
+}
+
+/* Permission Status */
+.reminder-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #E2E8F0;
+    font-size: 0.82rem;
+    color: #64748B;
+}
+
+.reminder-badge {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.reminder-badge.perm-granted {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+.reminder-badge.perm-denied {
+    background: #FEE2E2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+}
+.reminder-badge.perm-default {
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+}
+
+/* Select Picker */
+.reminder-sound-picker-group {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reminder-select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid #CBD5E1;
+    font-size: 0.86rem;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.reminder-select:focus {
+    border-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Waqt Checkbox Grid */
+.reminder-waqt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.reminder-waqt-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    transition: all 0.15s ease;
+}
+.reminder-waqt-chip:hover {
+    background: #F0FDF4;
+    border-color: #86EFAC;
+}
+.reminder-waqt-chip:has(.reminder-waqt-checkbox:checked) {
+    background: #ECFDF5;
+    border-color: #10B981;
+    color: #065F46;
+}
+.reminder-waqt-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #10B981;
+    cursor: pointer;
+}
+
+.reminder-test-feedback {
+    font-size: 0.8rem;
+    color: #059669;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .reminder-setting-card {
+    background: #1E293B;
+    border-color: #334155;
+}
+body.dark-mode .reminder-setting-card:hover {
+    border-color: #475569;
+}
+body.dark-mode .reminder-setting-title {
+    color: #F1F5F9;
+}
+body.dark-mode .reminder-setting-desc {
+    color: #94A3B8;
+}
+body.dark-mode .reminder-status-row {
+    border-top-color: #334155;
+    color: #94A3B8;
+}
+body.dark-mode .reminder-select {
+    background: #0F172A;
+    border-color: #334155;
+    color: #F1F5F9;
+}
+body.dark-mode .reminder-waqt-chip {
+    background: #0F172A;
+    border-color: #334155;
+    color: #E2E8F0;
+}
+body.dark-mode .reminder-waqt-chip:hover {
+    background: #132D28;
+    border-color: #059669;
+}
+body.dark-mode .reminder-waqt-chip:has(.reminder-waqt-checkbox:checked) {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10B981;
+    color: #34D399;
+}
+body.dark-mode .reminder-badge.perm-default {
+    background: #334155;
+    color: #CBD5E1;
+    border-color: #475569;
+}
+body.dark-mode .reminder-switch-slider {
+    background-color: #475569;
+}
+body.dark-mode .icon-btn.has-reminder-active {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10B981;
+    color: #34D399;
+}
+
+/* ========================================================
+   Task 4: Ramadan Fasting History & Multi-Year Archive
+   ======================================================== */
+.ramadan-archive-section {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.ramadan-archive-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.archive-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.archive-section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+}
+
+.archive-section-sub {
+    font-size: 0.82rem;
+    color: #64748B;
+}
+
+.ramadan-year-selector-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.year-select-label {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.ramadan-year-select {
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid #CBD5E1;
+    background: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0F172A;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.ramadan-year-select:focus {
+    border-color: #10B981;
+}
+
+/* Stats Bar */
+.ramadan-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.ramadan-stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+}
+
+.ramadan-stat-pill.stat-fasted { background: #ECFDF5; border-color: #A7F3D0; color: #065F46; }
+.ramadan-stat-pill.stat-missed { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+.ramadan-stat-pill.stat-sick { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.ramadan-stat-pill.stat-traveling { background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF; }
+
+.stat-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dot-fasted { background: #10B981; }
+.dot-missed { background: #EF4444; }
+.dot-sick { background: #F59E0B; }
+.dot-traveling { background: #3B82F6; }
+
+.ramadan-stat-pill .stat-label {
+    flex: 1;
+    font-weight: 600;
+}
+.ramadan-stat-pill .stat-val {
+    font-weight: 800;
+}
+
+/* 30-Day Grid */
+.ramadan-days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.ramadan-day-card {
+    padding: 12px 10px;
+    border-radius: 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+    position: relative;
+}
+.ramadan-day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+    border-color: #10B981;
+}
+
+.day-card-number {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.day-status-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.day-status-badge.badge-fasted { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+.day-status-badge.badge-not_fasted { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+.day-status-badge.badge-sick { background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; }
+.day-status-badge.badge-traveling { background: #DBEAFE; color: #1D4ED8; border: 1px solid #93C5FD; }
+.day-status-badge.badge-not_logged { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+
+.day-card-notes-dot {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.75rem;
+}
+
+/* Modal Content & Status Options */
+.ramadan-day-modal-content {
+    max-width: 440px;
+    font-family: 'Siyam Rupali', 'Noto Sans Bengali', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.status-options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ramadan-status-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.ramadan-status-option:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+}
+.ramadan-status-option:has(.status-radio:checked) {
+    border-color: #10B981;
+    background: #ECFDF5;
+}
+
+.status-radio {
+    accent-color: #10B981;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.status-option-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.ramadan-notes-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #CBD5E1;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: #0F172A;
+    background: #FFFFFF;
+    outline: none;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.ramadan-notes-input:focus {
+    border-color: #10B981;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .ramadan-archive-section {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: #334155;
+}
+body.dark-mode .archive-section-title {
+    color: #F1F5F9;
+}
+body.dark-mode .archive-section-sub {
+    color: #94A3B8;
+}
+body.dark-mode .year-select-label {
+    color: #CBD5E1;
+}
+body.dark-mode .ramadan-year-select {
+    background: #0F172A;
+    border-color: #334155;
+    color: #F1F5F9;
+}
+body.dark-mode .ramadan-stat-pill {
+    background: #0F172A;
+    border-color: #334155;
+}
+body.dark-mode .ramadan-stat-pill.stat-fasted { background: rgba(16, 185, 129, 0.15); border-color: #065F46; color: #6EE7B7; }
+body.dark-mode .ramadan-stat-pill.stat-missed { background: rgba(239, 68, 68, 0.15); border-color: #991B1B; color: #FCA5A5; }
+body.dark-mode .ramadan-stat-pill.stat-sick { background: rgba(245, 158, 11, 0.15); border-color: #92400E; color: #FCD34D; }
+body.dark-mode .ramadan-stat-pill.stat-traveling { background: rgba(59, 130, 246, 0.15); border-color: #1E40AF; color: #93C5FD; }
+body.dark-mode .ramadan-day-card {
+    background: #1E293B;
+    border-color: #334155;
+}
+body.dark-mode .day-card-number {
+    color: #F1F5F9;
+}
+body.dark-mode .day-status-badge.badge-not_logged {
+    background: #334155;
+    color: #94A3B8;
+    border-color: #475569;
+}
+body.dark-mode .ramadan-status-option {
+    background: #1E293B;
+    border-color: #334155;
+}
+body.dark-mode .ramadan-status-option:hover {
+    background: #253349;
+}
+body.dark-mode .ramadan-status-option:has(.status-radio:checked) {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10B981;
+}
+body.dark-mode .status-option-content {
+    color: #E2E8F0;
+}
+body.dark-mode .ramadan-notes-input {
+    background: #0F172A;
+    border-color: #334155;
+    color: #F1F5F9;
+}
+body.dark-mode .icon-btn.has-reminder-active::after {
+    border-color: #0F172A;
+}
+
+/* Deeds Checklist in Day Modal */
+.ramadan-deeds-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ramadan-deeds-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ramadan-deed-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #334155;
+    transition: all 0.15s ease;
+}
+.ramadan-deed-chip:hover {
+    background: #F0FDF4;
+    border-color: #86EFAC;
+}
+.ramadan-deed-chip:has(.ramadan-deed-cb:checked) {
+    background: #ECFDF5;
+    border-color: #10B981;
+    color: #065F46;
+}
+
+.ramadan-deed-cb {
+    width: 16px;
+    height: 16px;
+    accent-color: #10B981;
+    cursor: pointer;
+}
+
+.day-deeds-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #059669;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+    padding: 1px 6px;
+    border-radius: 6px;
+    margin-top: 2px;
+}
+
+/* Dark mode deeds */
+body.dark-mode .ramadan-deed-chip {
+    background: #0F172A;
+    border-color: #334155;
+    color: #E2E8F0;
+}
+body.dark-mode .ramadan-deed-chip:hover {
+    background: #132D28;
+    border-color: #059669;
+}
+body.dark-mode .ramadan-deed-chip:has(.ramadan-deed-cb:checked) {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10B981;
+    color: #34D399;
+}
+body.dark-mode .day-deeds-badge {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #065F46;
+    color: #6EE7B7;
 }
