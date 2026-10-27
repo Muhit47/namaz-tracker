@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=3.6">
+    <link rel="stylesheet" href="/style.css?v=2.9">
 </head>
 <body>
     <div class="app-shell">
@@ -28,33 +28,26 @@
         <header class="glass-navbar" role="banner">
             <div class="nav-left">
                 <div class="app-logo" aria-label="Namaz Tracker">
-                    <svg class="header-logo" viewBox="0 0 240 56" fill="none" aria-hidden="true">
+                    <svg class="logo-icon nt-logo-badge" viewBox="0 0 64 64" fill="none" aria-hidden="true">
                         <defs>
-                            <linearGradient id="headerNtBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="navNtBg" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#1E293B"/>
                                 <stop offset="100%" stop-color="#0F172A"/>
                             </linearGradient>
-                            <linearGradient id="headerNtStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="navNtStroke" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#FFFFFF"/>
                                 <stop offset="100%" stop-color="#F1F5F9"/>
                             </linearGradient>
                         </defs>
-                        <g transform="translate(6, 6)">
-                            <rect x="0" y="0" width="44" height="44" rx="12" fill="url(#headerNtBg)" stroke="#334155" stroke-width="1.2"/>
-                            <g transform="scale(0.6875)" fill="none" stroke="url(#headerNtStroke)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 43.5 V23.5 C17 20.5 19.5 19.5 21.5 21 L31.5 38 V21" />
-                                <path d="M26.5 21 H49.5" />
-                                <path d="M39 21 V38 C39 42 41.5 44 45 42.5" />
-                                <rect x="28.5" y="10.5" width="4.5" height="4.5" rx="1" transform="rotate(45 30.75 12.75)" fill="#94A3B8" stroke="none"/>
-                            </g>
+                        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#navNtBg)" stroke="#334155" stroke-width="1.5"/>
+                        <g fill="none" stroke="url(#navNtStroke)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 43.5 V23.5 C17 20.5 19.5 19.5 21.5 21 L31.5 38 V21" />
+                            <path d="M26.5 21 H49.5" />
+                            <path d="M39 21 V38 C39 42 41.5 44 45 42.5" />
                         </g>
-                        <text x="62" y="29" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="19" font-weight="800" fill="var(--text-primary)" letter-spacing="-0.02em">
-                            Namaz <tspan fill="var(--text-secondary)" font-weight="600">Tracker</tspan>
-                        </text>
-                        <text x="63" y="44" font-family="'Noto Sans Bengali', sans-serif" font-size="11" font-weight="500" fill="var(--text-muted)" letter-spacing="0.04em">
-                            দৈনন্দিন নামায ও কাযা ট্র্যাকিং
-                        </text>
+                        <rect x="28.5" y="10.5" width="4.5" height="4.5" rx="1" transform="rotate(45 30.75 12.75)" fill="#94A3B8"/>
                     </svg>
+                    <span class="app-title">Namaz Tracker</span>
                     <span class="live-indicator" aria-live="polite"></span>
                 </div>
             </div>
@@ -80,12 +73,6 @@
             </div>
             <div class="nav-right">
                 <div class="backup-action-group" style="display: flex; align-items: center; gap: 6px; margin-right: 8px;">
-                    <button type="button" id="reminder-settings-btn" class="icon-btn" aria-label="নামাজের ওয়াক্ত রিমাইন্ডার ও নোটিফিকেশন" title="ওয়াক্ত রিমাইন্ডার ও অডিও সেটিংস">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                    </button>
                     <button type="button" id="lang-switcher-btn" class="nav-action-btn lang-toggle-pill" onclick="toggleAppLanguage()" title="Switch Language" aria-label="ভাষা পরিবর্তন">
                         🌐 <span class="lang-text">English</span>
                     </button>
@@ -312,9 +299,6 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                         </button>
                         <h2 id="amal-month-title" class="amal-month-title">অক্টোবর ২০২৬</h2>
-                        <button type="button" id="export-amal-csv-btn" class="icon-btn" title="CSV ডাউনলোড" aria-label="CSV ডাউনলোড">
-                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        </button>
                         <button type="button" id="amal-next-month" class="icon-btn" aria-label="পরের মাস">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                         </button>
@@ -410,54 +394,6 @@
                             </button>
                         </div>
                     </article>
-                </div>
-
-                <!-- Multi-Year Ramadan Fasting Archive Section -->
-                <div class="ramadan-archive-section">
-                    <div class="ramadan-archive-header">
-                        <div class="archive-title-group">
-                            <h3 class="archive-section-title" id="ramadan-archive-title">📖 মাহে রমজান রোজা ট্র্যাকার ও আর্কাইভ</h3>
-                            <button type="button" id="export-ramadan-csv-btn" class="icon-btn" title="CSV ডাউনলোড" aria-label="CSV ডাউনলোড">
-                               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            </button>
-                            <span class="archive-section-sub" id="ramadan-archive-sub">৩০ দিনের রোজা আদায়ের পূর্ণাঙ্গ ইতিহাস ও ট্র্যাকিং</span>
-                        </div>
-                        <div class="ramadan-year-selector-wrap">
-                            <label for="ramadan-year-select" class="year-select-label" id="ramadan-year-label">বছর নির্বাচন:</label>
-                            <select id="ramadan-year-select" class="ramadan-year-select">
-                                <!-- Populated dynamically by JS -->
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Yearly Summary Stats Bar -->
-                    <div class="ramadan-stats-bar" id="ramadan-stats-bar">
-                        <div class="ramadan-stat-pill stat-fasted">
-                            <span class="stat-indicator dot-fasted"></span>
-                            <span class="stat-label" id="stat-fasted-label">রোজা রাখা হয়েছে:</span>
-                            <strong class="stat-val" id="ramadan-stat-fasted">০ / ৩০</strong>
-                        </div>
-                        <div class="ramadan-stat-pill stat-missed">
-                            <span class="stat-indicator dot-missed"></span>
-                            <span class="stat-label" id="stat-missed-label">রাখা হয়নি:</span>
-                            <strong class="stat-val" id="ramadan-stat-missed">০</strong>
-                        </div>
-                        <div class="ramadan-stat-pill stat-sick">
-                            <span class="stat-indicator dot-sick"></span>
-                            <span class="stat-label" id="stat-sick-label">অসুস্থতা:</span>
-                            <strong class="stat-val" id="ramadan-stat-sick">০</strong>
-                        </div>
-                        <div class="ramadan-stat-pill stat-traveling">
-                            <span class="stat-indicator dot-traveling"></span>
-                            <span class="stat-label" id="stat-traveling-label">সফর:</span>
-                            <strong class="stat-val" id="ramadan-stat-traveling">০</strong>
-                        </div>
-                    </div>
-
-                    <!-- 30-Day Ramadan Grid -->
-                    <div class="ramadan-days-grid" id="ramadan-days-grid">
-                        <!-- Populated dynamically by JS -->
-                    </div>
                 </div>
             </section>
 
@@ -1036,17 +972,6 @@
                     <span class="legend-item"><span class="legend-dot ayyam"></span>আইয়ামে বিজ (১৩-১৫)</span>
                     <span class="legend-item"><span class="legend-dot today"></span>আজ</span>
                 </div>
-                
-                <div class="hijri-offset-bar">
-                    <label for="hijri-offset-select" class="hijri-offset-label" id="hijri-offset-label">চাঁদ দেখার সমন্বয়:</label>
-                    <select id="hijri-offset-select" class="hijri-offset-select" aria-label="Hijri Date Offset">
-                        <option value="-2">-২ দিন (-2 Days)</option>
-                        <option value="-1">-১ দিন (-1 Day)</option>
-                        <option value="0" selected>০ দিন (স্বাভাবিক / Default)</option>
-                        <option value="1">+১ দিন (+1 Day)</option>
-                        <option value="2">+২ দিন (+2 Days)</option>
-                    </select>
-                </div>
 
                 <div class="cal-popover-weekdays hijri-weekdays">
                     <span>শনি</span>
@@ -1406,197 +1331,9 @@
             </footer>
         </div>
     </dialog>
-    <!-- Waqt Reminder & Audio Notification Modal (Glassmorphism) -->
-    <dialog id="reminder-modal" class="glass-modal reminder-modal" role="dialog" aria-modal="true" aria-labelledby="reminder-modal-title">
-        <div class="modal-backdrop" id="reminder-modal-backdrop"></div>
-        <div class="modal-content reminder-modal-content">
-            <header class="modal-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.3rem;">🔔</span>
-                    <h3 id="reminder-modal-title">ওয়াক্ত রিমাইন্ডার ও নোটিফিকেশন</h3>
-                </div>
-                <button type="button" id="close-reminder-modal" class="icon-btn" aria-label="বন্ধ করুন">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </header>
-
-            <div class="reminder-modal-body">
-                <!-- Card 1: Browser Push Notifications -->
-                <div class="reminder-setting-card">
-                    <div class="reminder-card-header">
-                        <div class="reminder-card-title-group">
-                            <span class="reminder-setting-title">🔔 ব্রাউজার নোটিফিকেশন</span>
-                            <span class="reminder-setting-desc">ওয়াক্তের সময় ব্রাউজারে পপআপ নোটিফিকেশন দেখতে এটি সক্রিয় করুন</span>
-                        </div>
-                        <label class="reminder-switch-label">
-                            <input type="checkbox" id="reminder-notif-toggle" class="reminder-toggle-input">
-                            <span class="reminder-switch-slider"></span>
-                        </label>
-                    </div>
-                    <div class="reminder-status-row" id="reminder-perm-status-row">
-                        <span class="reminder-perm-label">পারমিশন স্ট্যাটাস:</span>
-                        <span id="reminder-perm-badge" class="reminder-badge perm-default">যাচাই করা হচ্ছে...</span>
-                        <button type="button" id="reminder-request-perm-btn" class="btn btn-sm btn-outline" style="display:none;">অনুমতি দিন</button>
-                    </div>
-                </div>
-
-                <!-- Card 2: Audio / Adhan Chime Reminder -->
-                <div class="reminder-setting-card">
-                    <div class="reminder-card-header">
-                        <div class="reminder-card-title-group">
-                            <span class="reminder-setting-title">🔊 অডিও আযান ও চিম রিমাইন্ডার</span>
-                            <span class="reminder-setting-desc">ওয়াক্ত শুরুর মুহূর্তে সুমধুর সুর বা তাকবীরের মাধ্যমে সতর্কবার্তা</span>
-                        </div>
-                        <label class="reminder-switch-label">
-                            <input type="checkbox" id="reminder-audio-toggle" class="reminder-toggle-input">
-                            <span class="reminder-switch-slider"></span>
-                        </label>
-                    </div>
-                    <div class="reminder-sound-picker-group">
-                        <label for="reminder-sound-type" class="quick-pick-label">সুর নির্বাচন করুন:</label>
-                        <select id="reminder-sound-type" class="reminder-select">
-                            <option value="adhan_takbeer">🎵 মনোরম তাকবীর সুর (Allahu Akbar)</option>
-                            <option value="gentle_chime">🔔 শান্ত ঘণ্টার সুর (Gentle Chime)</option>
-                        </select>
-                    </div>
-                    <div class="reminder-test-btn-wrapper" style="margin-top: 10px;">
-                        <button type="button" id="reminder-test-btn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                            <span id="reminder-test-btn-text">🔊 টেস্ট নোটিফিকেশন ও সাউন্ড</span>
-                        </button>
-                        <span id="reminder-test-status" class="reminder-test-feedback" style="display: none;"></span>
-                    </div>
-                </div>
-
-                <!-- Card 3: Waqt Checklist -->
-                <div class="reminder-setting-card">
-                    <span class="reminder-setting-title" style="margin-bottom: 8px; display: block;">🕌 কোন কোন ওয়াক্তে রিমাইন্ডার চান?</span>
-                    <div class="reminder-waqt-grid">
-                        <label class="reminder-waqt-chip">
-                            <input type="checkbox" id="reminder-waqt-fajr" data-waqt="Fajr" checked class="reminder-waqt-checkbox">
-                            <span class="waqt-name">ফজর (Fajr)</span>
-                        </label>
-                        <label class="reminder-waqt-chip">
-                            <input type="checkbox" id="reminder-waqt-dhuhr" data-waqt="Dhuhr" checked class="reminder-waqt-checkbox">
-                            <span class="waqt-name">যোহর (Dhuhr)</span>
-                        </label>
-                        <label class="reminder-waqt-chip">
-                            <input type="checkbox" id="reminder-waqt-asr" data-waqt="Asr" checked class="reminder-waqt-checkbox">
-                            <span class="waqt-name">আসর (Asr)</span>
-                        </label>
-                        <label class="reminder-waqt-chip">
-                            <input type="checkbox" id="reminder-waqt-maghrib" data-waqt="Maghrib" checked class="reminder-waqt-checkbox">
-                            <span class="waqt-name">মাগরিব (Maghrib)</span>
-                        </label>
-                        <label class="reminder-waqt-chip">
-                            <input type="checkbox" id="reminder-waqt-isha" data-waqt="Isha" checked class="reminder-waqt-checkbox">
-                            <span class="waqt-name">এশা (Isha)</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="modal-footer">
-                <button type="button" id="cancel-reminder-modal" class="btn btn-ghost">বাতিল</button>
-                <button type="button" id="save-reminder-modal" class="btn btn-primary">সেভ করুন</button>
-            </footer>
-        </div>
-    </dialog>
-
-    <!-- Ramadan Day Fasting Status Modal (Glassmorphism) -->
-    <dialog id="ramadan-day-modal" class="glass-modal" role="dialog" aria-modal="true" aria-labelledby="ramadan-modal-day-title">
-        <div class="modal-backdrop" id="ramadan-day-modal-backdrop"></div>
-        <div class="modal-content ramadan-day-modal-content">
-            <header class="modal-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.3rem;">🌙</span>
-                    <h3 id="ramadan-modal-day-title">রমজান দিন ১</h3>
-                </div>
-                <button type="button" id="close-ramadan-day-modal" class="icon-btn" aria-label="বন্ধ করুন">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </header>
-
-            <div class="ramadan-modal-body">
-                <div class="status-options-group">
-                    <label class="ramadan-status-option opt-fasted">
-                        <input type="radio" name="ramadan-status-choice" value="fasted" class="status-radio">
-                        <span class="status-option-content">
-                            <span class="status-color-circle circle-fasted"></span>
-                            <span class="status-text-title" id="opt-fasted-text">🟢 রোজা রাখা হয়েছে (Fasted)</span>
-                        </span>
-                    </label>
-                    <label class="ramadan-status-option opt-not-fasted">
-                        <input type="radio" name="ramadan-status-choice" value="not_fasted" class="status-radio">
-                        <span class="status-option-content">
-                            <span class="status-color-circle circle-not-fasted"></span>
-                            <span class="status-text-title" id="opt-not-fasted-text">🔴 রোজা রাখা হয়নি (Not Fasted)</span>
-                        </span>
-                    </label>
-                    <label class="ramadan-status-option opt-sick">
-                        <input type="radio" name="ramadan-status-choice" value="sick" class="status-radio">
-                        <span class="status-option-content">
-                            <span class="status-color-circle circle-sick"></span>
-                            <span class="status-text-title" id="opt-sick-text">🟡 অসুস্থতার কারণে বিরত (Sick)</span>
-                        </span>
-                    </label>
-                    <label class="ramadan-status-option opt-traveling">
-                        <input type="radio" name="ramadan-status-choice" value="traveling" class="status-radio">
-                        <span class="status-option-content">
-                            <span class="status-color-circle circle-traveling"></span>
-                            <span class="status-text-title" id="opt-traveling-text">🔵 সফরের কারণে বিরত (Traveling)</span>
-                        </span>
-                    </label>
-                    <label class="ramadan-status-option opt-not-logged">
-                        <input type="radio" name="ramadan-status-choice" value="not_logged" class="status-radio">
-                        <span class="status-option-content">
-                            <span class="status-color-circle circle-not-logged"></span>
-                            <span class="status-text-title" id="opt-not-logged-text">⚪ কোনো রেকর্ড নেই (Not Logged)</span>
-                        </span>
-                    </label>
-                </div>
-
-                <div class="ramadan-deeds-group" style="margin-top: 14px;">
-                    <span class="quick-pick-label" id="ramadan-deeds-heading">✨ প্রতিদিনের বিশেষ আমল (Daily Deeds):</span>
-                    <div class="ramadan-deeds-checklist">
-                        <label class="ramadan-deed-chip">
-                            <input type="checkbox" id="deed-taraweeh" data-deed="taraweeh" class="ramadan-deed-cb">
-                            <span class="deed-label-text" id="deed-taraweeh-text">🕌 তারাবীহ নামায (Taraweeh)</span>
-                        </label>
-                        <label class="ramadan-deed-chip">
-                            <input type="checkbox" id="deed-quran" data-deed="quran" class="ramadan-deed-cb">
-                            <span class="deed-label-text" id="deed-quran-text">📖 কুরআন তিলাওয়াত (Quran)</span>
-                        </label>
-                        <label class="ramadan-deed-chip">
-                            <input type="checkbox" id="deed-sadaqah" data-deed="sadaqah" class="ramadan-deed-cb">
-                            <span class="deed-label-text" id="deed-sadaqah-text">💖 দান ও সাদাকাহ (Sadaqah)</span>
-                        </label>
-                        <label class="ramadan-deed-chip">
-                            <input type="checkbox" id="deed-dhikr" data-deed="dhikr" class="ramadan-deed-cb">
-                            <span class="deed-label-text" id="deed-dhikr-text">📿 যিকির ও ইস্তিগফার (Dhikr)</span>
-                        </label>
-                        <label class="ramadan-deed-chip">
-                            <input type="checkbox" id="deed-tahajjud" data-deed="tahajjud" class="ramadan-deed-cb">
-                            <span class="deed-label-text" id="deed-tahajjud-text">🤲 তাহাজ্জুদ ও দোয়া (Tahajjud)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="ramadan-note-group" style="margin-top: 14px;">
-                    <label for="ramadan-day-notes" class="quick-pick-label" id="ramadan-notes-label">নোট বা কাযার বিবরণ (ঐচ্ছিক):</label>
-                    <textarea id="ramadan-day-notes" rows="2" class="ramadan-notes-input" placeholder="এখানে নোট লিখুন..."></textarea>
-                </div>
-            </div>
-
-            <footer class="modal-footer">
-                <button type="button" id="cancel-ramadan-day-modal" class="btn btn-ghost">বাতিল</button>
-                <button type="button" id="save-ramadan-day-modal" class="btn btn-primary">সংরক্ষণ করুন</button>
-            </footer>
-        </div>
-    </dialog>
     </div> <!-- .app-shell -->
-<script src="/i18n.js?v=3.3"></script>
-<script src="/guide_content.js?v=3.3"></script>
-<script src="/app.js?v=3.3"></script>
+<script src="/i18n.js?v=3.0"></script>
+<script src="/guide_content.js?v=3.0"></script>
+<script src="/app.js?v=3.0"></script>
 </body>
 </html>
